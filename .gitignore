@@ -1,0 +1,11 @@
+.gradle/
+build/
+*.iml
+*.class
+*.prefs
+*.classpath
+.project
+.idea/
+gradle.properties
+secring.gpg
+memory
