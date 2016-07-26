@@ -8,7 +8,7 @@ import rx.lang.kotlin.toObservable
 /**
  * An in-memory database using SQLite holding three tables
  */
-val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite:memory").get()).apply {
+val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite::memory:").get()).apply {
 
     //create CLIENT_COMPANY TABLE
     val drop1 = update("DROP TABLE IF EXISTS CUSTOMER").count()
