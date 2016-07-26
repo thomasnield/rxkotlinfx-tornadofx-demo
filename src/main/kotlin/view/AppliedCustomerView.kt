@@ -2,7 +2,6 @@ package view
 
 import domain.Customer
 import javafx.scene.control.TableView
-import javafx.scene.control.ToolBar
 import javafx.scene.layout.BorderPane
 import rx.javafx.kt.actionEvents
 import rx.javafx.kt.onChangedObservable
@@ -40,7 +39,7 @@ class AppliedCustomerView : View() {
                         alertError()
                     }
             }
-            left(ToolBar()) {
+            left = toolbar {
                 button("\uD83D\uDD0E⇉") {
                     controller.searchClients += actionEvents().flatMap {
                         controller.selectedApplications.toObservable().take(1)

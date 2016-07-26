@@ -21,7 +21,7 @@ class MainView : View() {
         title = "Client/Salesperson Assignments"
 
         with(root) {
-            top(MenuBar()) {
+            top = menubar {
                 menu("File") {
                     menuitem("Refresh").apply {
                         controller.refreshCustomers += actionEvents().map { Unit }
@@ -29,18 +29,14 @@ class MainView : View() {
                     }
                 }
             }
-            center(SplitPane()) {
+            center = splitpane {
                 orientation = Orientation.HORIZONTAL
-                items {
-                    splitpane {
-                        orientation = Orientation.VERTICAL
-                        items {
-                            this += salesPeopleView
-                            this += appliedCustomerView
-                        }
-                    }
-                    this += companyClientView
+                splitpane {
+                    orientation = Orientation.VERTICAL
+                    this += salesPeopleView
+                    this += appliedCustomerView
                 }
+                this += companyClientView
             }
         }
     }

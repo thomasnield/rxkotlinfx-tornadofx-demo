@@ -22,7 +22,7 @@ mainClassName = 'app.MyApp'
 dependencies {
 
     //TornadoFX dependencies
-    compile 'com.github.edvin:tornadofx:9c6b39fdcf'
+    compile 'com.github.edvin:tornadofx:769d6f0b4246a0a72fd86dc3739bf5db6bcb2c96'
     //compile 'no.tornado:tornadofx:1.5.2'
 
     //sqlite and RxJava-JDBC dependencies
