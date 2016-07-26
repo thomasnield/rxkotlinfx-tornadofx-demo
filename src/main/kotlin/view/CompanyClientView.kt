@@ -1,5 +1,6 @@
 package view
 
+import app.Styles
 import domain.ClientCompany
 import javafx.geometry.Orientation
 import javafx.scene.control.*
@@ -18,7 +19,7 @@ class CompanyClientView: View() {
 
     init {
         with(root) {
-            top(Label("CLIENT COMPANIES"))
+            top(Label("CLIENT COMPANIES").addClass(Styles.heading))
 
             center(TableView<ClientCompany>()) {
                 column("ID",ClientCompany::id)
@@ -28,7 +29,7 @@ class CompanyClientView: View() {
 
                 //broadcast selections
                 controller.selectedClients += selectionModel.selectedItems.onChangedObservable()
-                        .flatMap { it.toObservable().filterNotNull().toList() }
+                        .flatMap { it.toObservable().filterNotNull().toSet() }
 
                 //Import data and refresh event handling
                 controller.refreshCompanyClients.toObservable().startWith(Unit)
@@ -46,12 +47,26 @@ class CompanyClientView: View() {
                         controller.selectedClients.toObservable().take(1)
                             .flatMap { it.toObservable() }
                             .map { it.id }
-                            .toList()
+                            .toSet()
                     }
                 }
-                button("⇉\uD83D\uDD0E")
+                button("⇉\uD83D\uDD0E") {
+                    controller.searchClients += actionEvents().flatMap {
+                        controller.selectedSalesPeople.toObservable().take(1)
+                            .flatMap { it.toObservable() }
+                            .flatMap { it.assignments.toObservable() }
+                            .distinct()
+                            .toSet()
+                    }
+                }
                 button("⇇") {
                     useMaxWidth = true
+                    controller.applyClients += actionEvents().flatMap {
+                        controller.selectedClients.toObservable().take(1)
+                                .flatMap { it.toObservable() }
+                                .map { it.id }
+                                .toSet()
+                    }
                 }
                 button("⇉")  {
                     useMaxWidth = true

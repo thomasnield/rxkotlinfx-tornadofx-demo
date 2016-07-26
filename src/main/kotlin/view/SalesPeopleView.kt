@@ -1,5 +1,6 @@
 package view
 
+import app.Styles
 import domain.SalesPerson
 import javafx.scene.control.Label
 import javafx.scene.control.SelectionMode
@@ -10,10 +11,7 @@ import rx.javafx.kt.plusAssign
 import rx.lang.kotlin.filterNotNull
 import rx.lang.kotlin.subscribeWith
 import rx.lang.kotlin.toObservable
-import tornadofx.View
-import tornadofx.center
-import tornadofx.column
-import tornadofx.top
+import tornadofx.*
 
 class SalesPeopleView: View() {
 
@@ -23,7 +21,7 @@ class SalesPeopleView: View() {
     init {
         with(root) {
 
-            top(Label("SALES PEOPLE"))
+            top(Label("SALES PEOPLE").addClass(Styles.heading))
 
             center(TableView<SalesPerson>()) {
                 column("ID",SalesPerson::id)
@@ -35,7 +33,7 @@ class SalesPeopleView: View() {
 
                 //broadcast selections
                 controller.selectedSalesPeople += selectionModel.selectedItems.onChangedObservable()
-                        .flatMap { it.toObservable().filterNotNull().toList() }
+                        .flatMap { it.toObservable().filterNotNull().toSet() }
 
                 //handle refresh events and import data
                 controller.refreshSalesPeople.toObservable().startWith(Unit)
@@ -43,19 +41,39 @@ class SalesPeopleView: View() {
                         SalesPerson.all.toList()
                     }.subscribeWith {
                         onNext { items.setAll(it) }
-                        onError { it.printStackTrace() }
+                        alertError()
                     }
+
+                //handle search requests
+                controller.searchClientUsages.toObservable().subscribeWith {
+                    onNext { ids ->
+                        moveToTopWhere { it.assignments.any { it in ids } }
+                        requestFocus()
+                    }
+                    alertError()
+                }
+
+                //handle adds
+                controller.applyClients.toObservable().subscribeWith {
+                    onNext { ids ->
+                        selectionModel.selectedItems.asSequence().filterNotNull().forEach {
+                            it.assignments.addAll(ids)
+                        }
+                    }
+                    alertError()
+                }
+
+                //handle removals
+                controller.removeClients.toObservable().subscribeWith {
+                    onNext { ids ->
+                        selectionModel.selectedItems.asSequence().filterNotNull().forEach {
+                            it.assignments.removeAll(ids)
+                        }
+                    }
+                    alertError()
+                }
             }
 
-        }
-        connect()
-    }
-
-    private fun connect() {
-        with(controller) {
-            searchClientUsages.toObservable().subscribeWith {
-                onNext {  }
-            }
         }
     }
 }

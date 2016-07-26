@@ -6,7 +6,7 @@ import rx.lang.kotlin.subscribeWith
 import rx.lang.kotlin.toObservable
 
 /**
- * An in-memory database using SQLite holding
+ * An in-memory database using SQLite holding three tables
  */
 val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite:memory").get()).apply {
 

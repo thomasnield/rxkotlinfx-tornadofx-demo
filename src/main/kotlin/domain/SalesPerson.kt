@@ -1,5 +1,6 @@
 package domain
 
+import javafx.beans.binding.Binding
 import javafx.collections.FXCollections
 import rx.javafx.kt.onChangedObservable
 import rx.javafx.kt.toBinding
@@ -19,16 +20,17 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
                         onNext { add(it) }
                         onError { throw RuntimeException(it) }
                     }
+            onChangedObservable()
         }
     }
 
     /**
      * A Binding holding a concatenation of the CompanyClient ID's for this SalesPerson
      */
-    val assignmentsBinding by lazy {
+    val assignmentsBinding: Binding<String> by lazy {
         assignments.onChangedObservable().flatMap {
-            it.toObservable().map { it.toString() }.reduce("") { x, y -> if (x == "") "" else "$x|y" }
-        }.toBinding()
+            it.toObservable().map { it.toString() }.reduce("") { x, y -> if (x == "") y else "$x|$y" }
+        }.filter { it.trim() != "" }.toBinding()
     }
 
     companion object {
@@ -38,14 +40,6 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
         val all = db.select("SELECT * FROM SALES_PERSON")
             .get { SalesPerson(it.getInt("ID"),it.getString("FIRST_NAME"),it.getString("LAST_NAME")) }
             .toList().flatMap { it.toObservable() } //workaround for SQLite locking error
-
-        /**
-         * Emits the SalesPerson for their given ID
-         */
-        fun forId(salesPersonId: Int) = db.select("SELECT * FROM SALES_PERSON")
-                .parameter(salesPersonId)
-                .get { SalesPerson(it.getInt("ID"),it.getString("FIRST_NAME"),it.getString("LAST_NAME")) }
-                .toList().flatMap { it.toObservable() } //workaround for SQLite locking error
 
         /**
          * Retrieves all assigned CompanyClient ID's for a given SalesPerson
