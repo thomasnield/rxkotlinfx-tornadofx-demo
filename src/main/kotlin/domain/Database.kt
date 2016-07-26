@@ -11,9 +11,9 @@ import rx.lang.kotlin.toObservable
 val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite:memory").get()).apply {
 
     //create CLIENT_COMPANY TABLE
-    val drop1 = update("DROP TABLE IF EXISTS CLIENT_COMPANY").count()
+    val drop1 = update("DROP TABLE IF EXISTS CUSTOMER").count()
 
-    val create1 = update("CREATE TABLE CLIENT_COMPANY (ID INTEGER PRIMARY KEY, NAME VARCHAR)")
+    val create1 = update("CREATE TABLE CUSTOMER (ID INTEGER PRIMARY KEY, NAME VARCHAR)")
             .dependsOn(drop1)
             .count()
 
@@ -28,14 +28,14 @@ val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite:memory")
             "Dash Inc"
     ).toObservable()
 
-    update("INSERT INTO CLIENT_COMPANY (NAME) VALUES (?)")
+    update("INSERT INTO CUSTOMER (NAME) VALUES (?)")
         .parameters(clientCompanyValues)
         .dependsOn(create1)
         .returnGeneratedKeys()
         .getAs(Int::class.java)
         .toList()
         .subscribeWith {
-            onNext { println("CLIENT_COMPANY table created, KEYS: $it")}
+            onNext { println("CUSTOMER table created, KEYS: $it")}
             onError { throw RuntimeException(it) }
         }
 
@@ -70,7 +70,7 @@ val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite:memory")
     val drop3 = update("DROP TABLE IF EXISTS ASSIGNMENT").count()
 
      update("CREATE TABLE ASSIGNMENT (ID INTEGER PRIMARY KEY, " +
-            "CLIENT_COMPANY_ID INTEGER, SALES_PERSON_ID INTEGER)")
+            "CUSTOMER_ID INTEGER, SALES_PERSON_ID INTEGER, APPLY_ORDER INTEGER)")
         .dependsOn(drop3)
         .count()
         .subscribeWith {

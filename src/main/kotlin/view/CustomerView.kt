@@ -1,11 +1,14 @@
 package view
 
 import app.Styles
+import app.toSet
 import domain.Customer
 import javafx.geometry.Orientation
 import javafx.scene.control.Alert
 import javafx.scene.control.SelectionMode
+import javafx.scene.paint.Color
 import rx.javafx.kt.actionEvents
+import rx.javafx.kt.addTo
 import rx.javafx.kt.onChangedObservable
 import rx.javafx.kt.plusAssign
 import rx.lang.kotlin.filterNotNull
@@ -34,31 +37,32 @@ class CustomerView : View() {
                     .flatMap {
                         Customer.all.toList()
                     }.subscribeWith {
-                onNext { items.setAll(it) }
-                onError { alert(Alert.AlertType.ERROR, "PROBLEM!", it.message ?: "").show() }
-            }
+                        onNext { items.setAll(it) }
+                        onError { alert(Alert.AlertType.ERROR, "PROBLEM!", it.message ?: "").show() }
+                    }
         }
         left = toolbar {
             orientation = Orientation.VERTICAL
             button("⇇\uD83D\uDD0E") {
-                controller.searchClientUsages += actionEvents().flatMap {
+                actionEvents().flatMap {
                     controller.selectedCustomers.toObservable().take(1)
                             .flatMap { it.toObservable() }
                             .map { it.id }
                             .toSet()
-                }
+                }.addTo(controller.searchCustomerUsages)
             }
             button("⇉\uD83D\uDD0E") {
-                controller.searchClients += actionEvents().flatMap {
+                controller.searchCustomers += actionEvents().flatMap {
                     controller.selectedSalesPeople.toObservable().take(1)
                             .flatMap { it.toObservable() }
                             .flatMap { it.customerAssignments.toObservable() }
                             .distinct()
                             .toSet()
-                }
+                }.addTo(controller.searchCustomers)
             }
             button("⇇") {
                 useMaxWidth = true
+                textFill = Color.GREEN
                 controller.applyCustomers += actionEvents().flatMap {
                     controller.selectedCustomers.toObservable().take(1)
                             .flatMap { it.toObservable() }
@@ -69,6 +73,7 @@ class CustomerView : View() {
             //remove selected customers
             button("⇉") {
                 useMaxWidth = true
+                textFill = Color.RED
                 controller.removeCustomers += actionEvents().flatMap {
                     controller.selectedCustomers.toObservable().take(1)
                             .flatMap { it.toObservable() }

@@ -1,9 +1,16 @@
 package view
 
 import app.Styles
+import app.addIfAbsent
+import app.alertError
+import app.toSet
 import domain.SalesPerson
+import javafx.geometry.Orientation
 import javafx.scene.control.SelectionMode
 import javafx.scene.layout.BorderPane
+import javafx.scene.paint.Color
+import rx.javafx.kt.actionEvents
+import rx.javafx.kt.addTo
 import rx.javafx.kt.onChangedObservable
 import rx.javafx.kt.plusAssign
 import rx.lang.kotlin.filterNotNull
@@ -18,6 +25,27 @@ class SalesPeopleView: View() {
     init {
         with(root) {
 
+            left = toolbar {
+                orientation = Orientation.VERTICAL
+
+                //save button
+                button("\uD83D\uDCBE") {
+                    useMaxWidth = true
+                    actionEvents()
+                        .map { Unit }
+                        .addTo(controller.saveAssignments)
+                }
+
+                //refresh button
+                button("↺") {
+                    textFill = Color.BLUE
+                    useMaxWidth = true
+                    actionEvents()
+                        .map { Unit }
+                        .addTo(controller.saveAssignments)
+                }
+            }
+
             top = label("SALES PEOPLE").addClass(Styles.heading)
 
             center = tableview<SalesPerson> {
@@ -29,20 +57,12 @@ class SalesPeopleView: View() {
                 selectionModel.selectionMode = SelectionMode.MULTIPLE
 
                 //broadcast selections
-                controller.selectedSalesPeople += selectionModel.selectedItems.onChangedObservable()
+                 selectionModel.selectedItems.onChangedObservable()
                         .flatMap { it.toObservable().filterNotNull().toSet() }
-
-                //handle refresh events and import data
-                controller.refreshSalesPeople.toObservable().startWith(Unit)
-                    .flatMap {
-                        SalesPerson.all.toList()
-                    }.subscribeWith {
-                        onNext { items.setAll(it) }
-                        alertError()
-                    }
+                        .addTo(controller.selectedSalesPeople)
 
                 //handle search requests
-                controller.searchClientUsages.toObservable().subscribeWith {
+                controller.searchCustomerUsages.toObservable().subscribeWith {
                     onNext { ids ->
                         moveToTopWhere { it.customerAssignments.any { it in ids } }
                         requestFocus()
@@ -54,7 +74,7 @@ class SalesPeopleView: View() {
                 controller.applyCustomers.toObservable().subscribeWith {
                     onNext { ids ->
                         selectionModel.selectedItems.asSequence().filterNotNull().forEach {
-                            it.customerAssignments.addAll(ids)
+                            it.customerAssignments.addIfAbsent(*ids.toTypedArray())
                         }
                     }
                     alertError()
@@ -67,6 +87,25 @@ class SalesPeopleView: View() {
                             it.customerAssignments.removeAll(ids)
                         }
                     }
+                    alertError()
+                }
+
+                //handle commits
+                controller.saveAssignments.toObservable().flatMap {
+                    items.toObservable().flatMap { it.saveAssignments() }
+                        .reduce { x,y -> x + y}
+                        .doOnNext { println("Committed $it changes") }
+                }.map { Unit }
+                .addTo(controller.refreshSalesPeople)
+
+                //handle refresh events and import data
+                controller.refreshSalesPeople.toObservable()
+                        .doOnNext { items.forEach { it.dispose() } } //important to kill subscriptions on each SalesPerson
+                        .startWith(Unit)
+                        .flatMap {
+                            SalesPerson.all.toList()
+                        }.subscribeWith {
+                    onNext { items.setAll(it) }
                     alertError()
                 }
             }

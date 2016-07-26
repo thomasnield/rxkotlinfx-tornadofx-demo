@@ -1,6 +1,9 @@
 package app
 
+import javafx.scene.image.Image
 import tornadofx.App
+import tornadofx.FX
+import tornadofx.addStageIcon
 import tornadofx.importStylesheet
 import view.MainView
 
@@ -9,5 +12,6 @@ class MyApp : App() {
 
     init {
         importStylesheet(Styles::class)
+        addStageIcon(Image("/app/tornado-fx-logo.png"))
     }
 }

@@ -3,10 +3,10 @@ package domain
 class Customer(val id: Int, val name: String) {
 
     companion object {
-        val all = db.select("SELECT * FROM CLIENT_COMPANY")
+        val all = db.select("SELECT * FROM CUSTOMER")
             .get { Customer(it.getInt("ID"), it.getString("NAME")) }
 
-        fun forId(id: Int) = db.select("SELECT * FROM CLIENT_COMPANY WHERE ID = ?")
+        fun forId(id: Int) = db.select("SELECT * FROM CUSTOMER WHERE ID = ?")
             .get { Customer(it.getInt("ID"), it.getString("NAME")) }
     }
 }

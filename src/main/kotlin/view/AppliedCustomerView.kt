@@ -1,5 +1,7 @@
 package view
 
+import app.alertError
+import app.toSet
 import domain.Customer
 import javafx.scene.control.TableView
 import javafx.scene.layout.BorderPane
@@ -41,7 +43,7 @@ class AppliedCustomerView : View() {
             }
             left = toolbar {
                 button("\uD83D\uDD0E⇉") {
-                    controller.searchClients += actionEvents().flatMap {
+                    controller.searchCustomers += actionEvents().flatMap {
                         controller.selectedApplications.toObservable().take(1)
                     }
                 }
