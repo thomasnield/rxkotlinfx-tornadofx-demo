@@ -61,7 +61,7 @@ class AppliedCustomerView : View() {
                             selectedPeople.toObservable().flatMap { it.customerAssignments.toObservable() }
                                     .distinct()
                                     .flatMap { Customer.forId(it) }
-                                    .toList()
+                                    .toSortedList { x,y -> x.id.compareTo(y.id) }
                         }
                     }.filterNotNull().subscribeWith {
                         onNext {
