@@ -13,7 +13,7 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
     /**
      * The assigned CompanyClient ID's for this SalesPerson
      */
-    val assignments by lazy {
+    val customerAssignments by lazy {
         FXCollections.observableSet(HashSet<Int>()).apply {
             assignmentsFor(id)
                     .subscribeWith {
@@ -27,10 +27,10 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
     /**
      * A Binding holding a concatenation of the CompanyClient ID's for this SalesPerson
      */
-    val assignmentsBinding: Binding<String> by lazy {
-        assignments.onChangedObservable().flatMap {
+    val customerAssignmentsConcat: Binding<String> by lazy {
+        customerAssignments.onChangedObservable().flatMap {
             it.toObservable().map { it.toString() }.reduce("") { x, y -> if (x == "") y else "$x|$y" }
-        }.filter { it.trim() != "" }.toBinding()
+        }.toBinding()
     }
 
     companion object {

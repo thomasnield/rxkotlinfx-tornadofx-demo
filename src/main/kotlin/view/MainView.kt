@@ -12,7 +12,8 @@ class MainView : View() {
     override val root = BorderPane()
 
     private val salesPeopleView: SalesPeopleView by inject()
-    private val companyClientView: CompanyClientView by inject()
+    private val companyClientView: CustomerView by inject()
+    private val appliedCustomerView: AppliedCustomerView by inject()
 
     private val controller: EventController by inject()
 
@@ -23,7 +24,7 @@ class MainView : View() {
             top(MenuBar()) {
                 menu("File") {
                     menuitem("Refresh").apply {
-                        controller.refreshCompanyClients += actionEvents().map { Unit }
+                        controller.refreshCustomers += actionEvents().map { Unit }
                         controller.refreshSalesPeople += actionEvents().map { Unit }
                     }
                 }
@@ -31,7 +32,13 @@ class MainView : View() {
             center(SplitPane()) {
                 orientation = Orientation.HORIZONTAL
                 items {
-                    this += salesPeopleView
+                    splitpane {
+                        orientation = Orientation.VERTICAL
+                        items {
+                            this += salesPeopleView
+                            this += appliedCustomerView
+                        }
+                    }
                     this += companyClientView
                 }
             }

@@ -1,7 +1,7 @@
 package view
 
 import app.Styles
-import domain.ClientCompany
+import domain.Customer
 import javafx.geometry.Orientation
 import javafx.scene.control.*
 import javafx.scene.layout.BorderPane
@@ -13,28 +13,28 @@ import rx.lang.kotlin.subscribeWith
 import rx.lang.kotlin.toObservable
 import tornadofx.*
 
-class CompanyClientView: View() {
+class CustomerView : View() {
     override val root = BorderPane()
     private val controller: EventController by inject()
 
     init {
         with(root) {
-            top(Label("CLIENT COMPANIES").addClass(Styles.heading))
+            top(Label("CUSTOMER").addClass(Styles.heading))
 
-            center(TableView<ClientCompany>()) {
-                column("ID",ClientCompany::id)
-                column("NAME",ClientCompany::name)
+            center(TableView<Customer>()) {
+                column("ID", Customer::id)
+                column("NAME", Customer::name)
 
                 selectionModel.selectionMode = SelectionMode.MULTIPLE
 
                 //broadcast selections
-                controller.selectedClients += selectionModel.selectedItems.onChangedObservable()
+                controller.selectedCustomers += selectionModel.selectedItems.onChangedObservable()
                         .flatMap { it.toObservable().filterNotNull().toSet() }
 
                 //Import data and refresh event handling
-                controller.refreshCompanyClients.toObservable().startWith(Unit)
+                controller.refreshCustomers.toObservable().startWith(Unit)
                     .flatMap {
-                        ClientCompany.all.toList()
+                        Customer.all.toList()
                     }.subscribeWith {
                         onNext { items.setAll(it) }
                         onError { alert(Alert.AlertType.ERROR,"PROBLEM!",it.message?:"").show() }
@@ -44,7 +44,7 @@ class CompanyClientView: View() {
                 orientation = Orientation.VERTICAL
                 button("⇇\uD83D\uDD0E") {
                     controller.searchClientUsages += actionEvents().flatMap {
-                        controller.selectedClients.toObservable().take(1)
+                        controller.selectedCustomers.toObservable().take(1)
                             .flatMap { it.toObservable() }
                             .map { it.id }
                             .toSet()
@@ -54,22 +54,29 @@ class CompanyClientView: View() {
                     controller.searchClients += actionEvents().flatMap {
                         controller.selectedSalesPeople.toObservable().take(1)
                             .flatMap { it.toObservable() }
-                            .flatMap { it.assignments.toObservable() }
+                            .flatMap { it.customerAssignments.toObservable() }
                             .distinct()
                             .toSet()
                     }
                 }
                 button("⇇") {
                     useMaxWidth = true
-                    controller.applyClients += actionEvents().flatMap {
-                        controller.selectedClients.toObservable().take(1)
+                    controller.applyCustomers += actionEvents().flatMap {
+                        controller.selectedCustomers.toObservable().take(1)
                                 .flatMap { it.toObservable() }
                                 .map { it.id }
                                 .toSet()
                     }
                 }
+                //remove selected customers
                 button("⇉")  {
                     useMaxWidth = true
+                    controller.removeCustomers += actionEvents().flatMap {
+                        controller.selectedCustomers.toObservable().take(1)
+                                .flatMap { it.toObservable() }
+                                .map { it.id }
+                                .toSet()
+                    }
                 }
             }
         }

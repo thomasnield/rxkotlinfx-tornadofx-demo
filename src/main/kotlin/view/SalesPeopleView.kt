@@ -27,7 +27,7 @@ class SalesPeopleView: View() {
                 column("ID",SalesPerson::id)
                 column("First Name",SalesPerson::firstName)
                 column("Last Name",SalesPerson::lastName)
-                column("Assigned Clients",SalesPerson::assignmentsBinding)
+                column("Assigned Clients",SalesPerson::customerAssignmentsConcat)
 
                 selectionModel.selectionMode = SelectionMode.MULTIPLE
 
@@ -47,27 +47,27 @@ class SalesPeopleView: View() {
                 //handle search requests
                 controller.searchClientUsages.toObservable().subscribeWith {
                     onNext { ids ->
-                        moveToTopWhere { it.assignments.any { it in ids } }
+                        moveToTopWhere { it.customerAssignments.any { it in ids } }
                         requestFocus()
                     }
                     alertError()
                 }
 
                 //handle adds
-                controller.applyClients.toObservable().subscribeWith {
+                controller.applyCustomers.toObservable().subscribeWith {
                     onNext { ids ->
                         selectionModel.selectedItems.asSequence().filterNotNull().forEach {
-                            it.assignments.addAll(ids)
+                            it.customerAssignments.addAll(ids)
                         }
                     }
                     alertError()
                 }
 
                 //handle removals
-                controller.removeClients.toObservable().subscribeWith {
+                controller.removeCustomers.toObservable().subscribeWith {
                     onNext { ids ->
                         selectionModel.selectedItems.asSequence().filterNotNull().forEach {
-                            it.assignments.removeAll(ids)
+                            it.customerAssignments.removeAll(ids)
                         }
                     }
                     alertError()
