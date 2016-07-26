@@ -1,9 +1,6 @@
 package view
 
-import app.Styles
-import app.addIfAbsent
-import app.alertError
-import app.toSet
+import app.*
 import domain.SalesPerson
 import javafx.geometry.Orientation
 import javafx.scene.control.SelectionMode
@@ -108,6 +105,18 @@ class SalesPeopleView: View() {
                     onNext { items.setAll(it) }
                     alertError()
                 }
+
+                //handle move up and move down requests
+                controller.moveSelectedCustomerUp.toObservable()
+                        .map { it to selectedItem?.customerAssignments }
+                        .filter { it.second != null }
+                        .subscribe { it.second!!.moveUp(it.first) }
+
+                //handle move up and move down requests
+                controller.moveSelectedCustomerDown.toObservable()
+                        .map { it to selectedItem?.customerAssignments }
+                        .filter { it.second != null }
+                        .subscribe { it.second!!.moveDown(it.first) }
             }
 
         }
