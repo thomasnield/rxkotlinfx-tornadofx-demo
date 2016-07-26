@@ -6,7 +6,8 @@ import rx.lang.kotlin.subscribeWith
 import rx.lang.kotlin.toObservable
 
 /**
- * An in-memory database using SQLite holding three tables
+ * An in-memory `Database` using SQLite holding three tables. This `Database` performs reactive querying
+ * and writing via [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc)
  */
 val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite::memory:").get()).apply {
 

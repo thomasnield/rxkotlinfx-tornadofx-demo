@@ -21,9 +21,11 @@ import java.util.*
 
 class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
 
+    //We maintain a collection of bindings and subscriptions to unsubscribe them later
     private val bindings = CompositeBinding()
     private val subscriptions = CompositeSubscription()
 
+    //hold original customer assignments for dirty validation
     val originalAssignments: List<Int> by lazy {
         ArrayList<Int>().apply {
             assignmentsFor(id)
@@ -35,7 +37,7 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
         }
     }
 
-    //The assigned CompanyClient ID's for this SalesPerson
+    //The staged Customer ID's for this SalesPerson
     val customerAssignments: ObservableList<Int> by lazy { FXCollections.observableArrayList(originalAssignments) }
 
 
@@ -52,6 +54,7 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
          .addTo(bindings)
     }
 
+    //Compares original and new Customer ID assignments and writes them to database
     fun saveAssignments(): Observable<Int> {
 
         val newItems = customerAssignments.toObservable()
@@ -61,7 +64,7 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
 
         val previousItems = assignmentsFor(id).toSet()
 
-        //compare assignments and write changes
+        //zip old and new assignments together, compare them, and write changes
         return Observable.zip(newItems, previousItems) { new,old -> new to old }
             .flatMap { newAndOld ->
                 val new = newAndOld.first
@@ -74,7 +77,10 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
             }.count()
     }
 
-    //Releases any reactive subscriptions associated with this SalesPerson
+    /**Releases any reactive subscriptions associated with this SalesPerson.
+     * This is very critical to prevent memory leaks with infinite hot Observables
+     * because they do not know when they are complete
+     */
     fun dispose() {
         bindings.dispose()
         subscriptions.unsubscribe()

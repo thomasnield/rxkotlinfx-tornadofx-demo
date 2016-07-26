@@ -43,8 +43,12 @@ class AppliedCustomerView : View() {
                         .filterNotNull()
                         .toBinding()
 
+                //if multiple SalesPeople are selected, we consolidate their customers distinctly.
+                //Otherwise we will push out a hot list of Customers for that one SalesPerson.
+                //It will update automatically and the switchMap() will kill it when the selection changes
                 controller.selectedSalesPeople.toObservable()
                     .switchMap { selectedPeople ->
+                        //the switchMap() is raw power! it unsubscribes the previous emission when a new one comes in
 
                         if (selectedPeople.size == 1) {
                             selectedPeople.toObservable().flatMap {

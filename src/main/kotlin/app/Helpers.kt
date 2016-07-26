@@ -19,8 +19,9 @@ fun <T> FunctionSubscriberModifier<T>.alertError() {
 }
 
 /**
- * Workaround for SQLite locking error.
- * Collecting items and then emitting them again allows query to close for other queries
+ * Workaround for [SQLite locking error](https://github.com/davidmoten/rxjava-jdbc#note-for-sqlite-users).
+ * Collecting items and then emitting them again allows query
+ * to close and open connection for other queries
  */
 fun <T> Observable<T>.flatCollect(): Observable<T> = toList().flatMap { it.toObservable() }
 
