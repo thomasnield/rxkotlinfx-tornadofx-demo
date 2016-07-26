@@ -40,6 +40,14 @@ class CustomerView : View() {
                         onNext { items.setAll(it) }
                         onError { alert(Alert.AlertType.ERROR, "PROBLEM!", it.message ?: "").show() }
                     }
+
+            //handle search request
+            controller.searchCustomers.toObservable()
+                .subscribeWith {
+                    onNext { ids -> moveToTopWhere { it.id in ids } }
+                    onError { it.printStackTrace() }
+                }
+
         }
         left = toolbar {
             orientation = Orientation.VERTICAL
