@@ -25,7 +25,7 @@ class AppliedCustomerView : View() {
     init {
         with(root) {
 
-            top = label("Assigned Customers").addClass(Styles.heading)
+            top = label("ASSIGNED CUSTOMERS").addClass(Styles.heading)
 
             center = tableview<Customer> {
                 column("ID", Customer::id)
