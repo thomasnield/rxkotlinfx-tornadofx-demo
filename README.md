@@ -4,4 +4,4 @@ This is an [RxJava](https://github.com/ReactiveX/RxJava)-driven application. A t
 
 Clone and build it to see RxJava, Kotlin, and JavaFX working together to create powerful applications. 
 
-![](http://imgur.com/a/tBJZU)
+![](http://i.imgur.com/UJxxemy.gif)
