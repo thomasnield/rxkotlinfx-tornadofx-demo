@@ -107,13 +107,13 @@ class SalesPeopleView: View() {
                 }
 
                 //handle move up and move down requests
-                controller.moveSelectedCustomerUp.toObservable()
+                controller.moveCustomerUp.toObservable()
                         .map { it to selectedItem?.customerAssignments }
                         .filter { it.second != null }
                         .subscribe { it.second!!.moveUp(it.first) }
 
                 //handle move up and move down requests
-                controller.moveSelectedCustomerDown.toObservable()
+                controller.moveCustomerDown.toObservable()
                         .map { it to selectedItem?.customerAssignments }
                         .filter { it.second != null }
                         .subscribe { it.second!!.moveDown(it.first) }

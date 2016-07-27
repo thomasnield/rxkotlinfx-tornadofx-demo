@@ -19,8 +19,8 @@ class EventController: Controller() {
     val selectedSalesPeople = CompositeObservable<Set<SalesPerson>>(1) //cache last selection
     val selectedApplications = CompositeObservable<Set<Int>>(1) //cache last selection
 
-    val moveSelectedCustomerUp = CompositeObservable<Int>()
-    val moveSelectedCustomerDown = CompositeObservable<Int>()
+    val moveCustomerUp = CompositeObservable<Int>()
+    val moveCustomerDown = CompositeObservable<Int>()
 
     val saveAssignments = CompositeObservable<Unit>()
 }

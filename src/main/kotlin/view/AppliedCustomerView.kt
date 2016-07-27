@@ -4,13 +4,14 @@ import app.Styles
 import app.alertError
 import app.toSet
 import domain.Customer
+import javafx.event.ActionEvent
 import javafx.geometry.Orientation
 import javafx.scene.control.TableView
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
-import rx.javafx.kt.actionEvents
-import rx.javafx.kt.addTo
-import rx.javafx.kt.onChangedObservable
-import rx.javafx.kt.toBinding
+import rx.Observable
+import rx.javafx.kt.*
 import rx.lang.kotlin.filterNotNull
 import rx.lang.kotlin.subscribeWith
 import rx.lang.kotlin.toObservable
@@ -78,22 +79,35 @@ class AppliedCustomerView : View() {
             left = toolbar {
                 orientation = Orientation.VERTICAL
                 button("▲") {
+                    tooltip("Move customer up (CTRL + ↑)")
 
                     //disable when multiple salespeople selected
                     controller.selectedSalesPeople.toObservable().map { it.size > 1 }.subscribe { isDisable = it }
 
                     //broadcast move up requests
-                    actionEvents().map { table.selectedItem?.id }.filterNotNull().addTo(controller.moveSelectedCustomerUp)
+
+                    val keyEvents =  table.events(KeyEvent.KEY_PRESSED).filter { it.isControlDown && it.code == KeyCode.UP }
+                    val buttonEvents = actionEvents()
+
+                    Observable.merge(keyEvents, buttonEvents)
+                            .map { table.selectedItem?.id }
+                            .filterNotNull()
+                            .addTo(controller.moveCustomerUp)
 
                     useMaxWidth = true
                 }
                 button("▼") {
+                    tooltip("Move customer down (CTRL + ↓)")
 
                     //disable when multiple salespeople selected
                     controller.selectedSalesPeople.toObservable().map { it.size > 1 }.subscribe { isDisable = it }
 
                     //broadcast move down requests
-                    actionEvents().map { table.selectedItem?.id }.filterNotNull().addTo(controller.moveSelectedCustomerDown)
+                    val keyEvents =  table.events(KeyEvent.KEY_PRESSED).filter { it.isControlDown && it.code == KeyCode.DOWN }
+                    val buttonEvents = actionEvents()
+
+                    Observable.merge(keyEvents, buttonEvents)
+                        .map { table.selectedItem?.id }.filterNotNull().addTo(controller.moveCustomerDown)
 
                     useMaxWidth = true
                 }

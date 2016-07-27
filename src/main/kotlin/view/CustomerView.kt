@@ -6,11 +6,12 @@ import domain.Customer
 import javafx.geometry.Orientation
 import javafx.scene.control.Alert
 import javafx.scene.control.SelectionMode
+import javafx.scene.control.TableView
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.paint.Color
-import rx.javafx.kt.actionEvents
-import rx.javafx.kt.addTo
-import rx.javafx.kt.onChangedObservable
-import rx.javafx.kt.plusAssign
+import rx.Observable
+import rx.javafx.kt.*
 import rx.lang.kotlin.filterNotNull
 import rx.lang.kotlin.subscribeWith
 import rx.lang.kotlin.toObservable
@@ -18,6 +19,7 @@ import tornadofx.*
 
 class CustomerView : View() {
     private val controller: EventController by inject()
+    private var table: TableView<Customer> by singleAssign()
 
     override val root = borderpane {
         top = label("CUSTOMER").addClass(Styles.heading)
@@ -29,8 +31,9 @@ class CustomerView : View() {
             selectionModel.selectionMode = SelectionMode.MULTIPLE
 
             //broadcast selections
-            controller.selectedCustomers += selectionModel.selectedItems.onChangedObservable()
+            selectionModel.selectedItems.onChangedObservable()
                     .flatMap { it.toObservable().filterNotNull().toSet() }
+                    .addTo(controller.selectedCustomers )
 
             //Import data and refresh event handling
             controller.refreshCustomers.toObservable().startWith(Unit)
@@ -48,10 +51,12 @@ class CustomerView : View() {
                     onError { it.printStackTrace() }
                 }
 
+            table = this
         }
         left = toolbar {
             orientation = Orientation.VERTICAL
             button("⇇\uD83D\uDD0E") {
+
                 actionEvents().flatMap {
                     controller.selectedCustomers.toObservable().take(1)
                             .flatMap { it.toObservable() }
@@ -60,7 +65,8 @@ class CustomerView : View() {
                 }.addTo(controller.searchCustomerUsages)
             }
             button("⇉\uD83D\uDD0E") {
-                controller.searchCustomers += actionEvents().flatMap {
+
+                actionEvents().flatMap {
                     controller.selectedSalesPeople.toObservable().take(1)
                             .flatMap { it.toObservable() }
                             .flatMap { it.customerAssignments.toObservable() }
@@ -69,25 +75,37 @@ class CustomerView : View() {
                 }.addTo(controller.searchCustomers)
             }
             button("⇇") {
+                tooltip("Apply selected Customers to Selected Sales Persons (CTRL + ←")
+
                 useMaxWidth = true
                 textFill = Color.GREEN
-                controller.applyCustomers += actionEvents().flatMap {
+
+                val keyEvents = table.events(KeyEvent.KEY_PRESSED).filter { it.isControlDown && it.code == KeyCode.LEFT }
+                val buttonEvents = actionEvents()
+
+                Observable.merge(keyEvents, buttonEvents).flatMap {
                     controller.selectedCustomers.toObservable().take(1)
                             .flatMap { it.toObservable() }
                             .map { it.id }
                             .toSet()
-                }
+                }.addTo(controller.applyCustomers)
             }
             //remove selected customers
             button("⇉") {
+                tooltip("Apply selected Customers to Selected Sales Persons (CTRL + →")
+
                 useMaxWidth = true
                 textFill = Color.RED
-                controller.removeCustomers += actionEvents().flatMap {
+
+                val keyEvents = table.events(KeyEvent.KEY_PRESSED).filter { it.isControlDown && it.code == KeyCode.RIGHT }
+                val buttonEvents = actionEvents()
+
+                Observable.merge(keyEvents,buttonEvents).flatMap {
                     controller.selectedCustomers.toObservable().take(1)
                             .flatMap { it.toObservable() }
                             .map { it.id }
                             .toSet()
-                }
+                }.addTo(controller.removeCustomers)
             }
         }
     }
