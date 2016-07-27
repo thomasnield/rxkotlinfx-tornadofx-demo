@@ -39,7 +39,7 @@ class SalesPeopleView: View() {
                     useMaxWidth = true
                     actionEvents()
                         .map { Unit }
-                        .addTo(controller.saveAssignments)
+                        .addTo(controller.refreshSalesPeople)
                 }
             }
 
