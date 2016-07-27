@@ -92,7 +92,7 @@ class CustomerView : View() {
             }
             //remove selected customers
             button("⇉") {
-                tooltip("Apply selected Customers to Selected Sales Persons (CTRL + →)")
+                tooltip("Remove selected Customers from Selected Sales Persons (CTRL + →)")
 
                 useMaxWidth = true
                 textFill = Color.RED
