@@ -150,7 +150,7 @@ class CustomerView : View() {
         //handle Customer deletions
         val deletions = controller.deleteCustomers.toObservable()
             .flatMap {
-                table.currentSelections().toList()
+                table.currentSelections.toList()
             }.flatMap { deleteItems ->
                 Alert(Alert.AlertType.WARNING, "Are you sure you want to delete these ${deleteItems.size} customers?", ButtonType.YES, ButtonType.NO)
                     .toObservable().filter { it == ButtonType.YES }

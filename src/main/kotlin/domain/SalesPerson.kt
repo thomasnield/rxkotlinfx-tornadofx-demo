@@ -77,6 +77,11 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
             }.count()
     }
 
+    fun delete() = db.update("DELETE FROM SALES_PERSON WHERE ID = ?")
+        .parameter(id)
+        .count()
+        .map { id } //return id of deleted SalesPerson
+
     /**Releases any reactive subscriptions associated with this SalesPerson.
      * This is very critical to prevent memory leaks with infinite hot Observables
      * because they do not know when they are complete
@@ -93,12 +98,24 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
             .flatCollect()
 
 
+        fun forId(id: Int) = db.select("SELECT * FROM SALES_PERSON WHERE ID = ?")
+            .parameter(id)
+            .get { SalesPerson(it.getInt("ID"),it.getString("FIRST_NAME"),it.getString("LAST_NAME")) }
+            .flatCollect()
+
         //Retrieves all assigned CompanyClient ID's for a given SalesPerson
         fun assignmentsFor(salesPersonId: Int): Observable<Assignment> =
             db.select("SELECT * FROM ASSIGNMENT WHERE SALES_PERSON_ID = ? ORDER BY APPLY_ORDER")
                 .parameter(salesPersonId)
                 .get { Assignment(it.getInt("ID"), it.getInt("SALES_PERSON_ID"), it.getInt("CUSTOMER_ID"), it.getInt("APPLY_ORDER")) }
                 .flatCollect()
+
+        fun createNew(firstName: String, lastName: String) =
+                db.update("INSERT INTO SALES_PERSON (FIRST_NAME,LAST_NAME) VALUES (?,?)")
+                    .parameters(firstName,lastName)
+                    .returnGeneratedKeys()
+                    .getAs(Int::class.java)
+                    .flatCollect()
 
         //commits assignments
         private fun writeAssignment(assignment: Assignment) =

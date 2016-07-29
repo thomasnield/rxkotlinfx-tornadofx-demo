@@ -60,8 +60,11 @@ fun <T> ObservableList<T>.moveDown(item: T) {
         add(index + 1,item)
     }
 }
+fun <T> ObservableList<T>.deleteWhere(predicate: (T) -> Boolean) {
+    asSequence().toList().asSequence().filter(predicate).forEach { remove(it) }
+}
 
 @Suppress("USELESS_CAST")
 fun <T> Observable<T>.toSet(): Observable<Set<T>> = collect({ HashSet<T>() },{ set, t -> set.add(t)}).map { it as Set<T> }
 
-fun <T> TableView<T>.currentSelections() = selectionModel.selectedItems.toObservable().filter { it != null }
+val <T> TableView<T>.currentSelections: Observable<T> get() = selectionModel.selectedItems.toObservable().filter { it != null }
