@@ -49,7 +49,10 @@ class CustomerView : View() {
             //handle search request
             controller.searchCustomers.toObservable()
                 .subscribeWith {
-                    onNext { ids -> moveToTopWhere { it.id in ids } }
+                    onNext { ids ->
+                        moveToTopWhere { it.id in ids }
+                        requestFocus()
+                    }
                     onError { it.printStackTrace() }
                 }
 
