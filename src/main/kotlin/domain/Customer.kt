@@ -14,5 +14,17 @@ class Customer(val id: Int, val name: String) {
                 .parameter(id)
                 .get { Customer(it.getInt("ID"), it.getString("NAME")) }
                 .flatCollect()
+
+        fun createNew(name: String): Observable<Int> = db.update("INSERT INTO CUSTOMER (NAME) VALUES (?)")
+            .parameter(name)
+            .returnGeneratedKeys()
+            .getAs(Int::class.java)
+            .flatCollect()
     }
+
+    fun delete() = db.update("DELETE FROM CUSTOMER WHERE ID = ?")
+        .parameter(id)
+        .count()
+        .map { id }  //return ID of Customer that was just deleted
+
 }

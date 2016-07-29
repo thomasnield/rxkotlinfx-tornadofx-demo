@@ -2,8 +2,10 @@ package view
 
 import app.*
 import domain.SalesPerson
+import javafx.collections.FXCollections
 import javafx.geometry.Orientation
 import javafx.scene.control.SelectionMode
+import javafx.scene.control.TableView
 import javafx.scene.layout.BorderPane
 import javafx.scene.paint.Color
 import rx.javafx.kt.actionEvents
@@ -18,6 +20,7 @@ import tornadofx.*
 class SalesPeopleView: View() {
     override val root = BorderPane()
     private val controller: EventController by inject()
+    private val backingItems = FXCollections.observableArrayList<SalesPerson>()
 
     init {
         with(root) {
@@ -45,7 +48,7 @@ class SalesPeopleView: View() {
 
             top = label("SALES PEOPLE").addClass(Styles.heading)
 
-            center = tableview<SalesPerson> {
+            center = tableview(backingItems) {
                 column("ID",SalesPerson::id)
                 column("First Name",SalesPerson::firstName)
                 column("Last Name",SalesPerson::lastName)
@@ -78,7 +81,7 @@ class SalesPeopleView: View() {
                 }
 
                 //handle removals
-                controller.removeCustomers.toObservable().subscribeWith {
+                controller.removeCustomerUsages.toObservable().subscribeWith {
                     onNext { ids ->
                         selectionModel.selectedItems.asSequence().filterNotNull().forEach {
                             it.customerAssignments.removeAll(ids)
@@ -119,6 +122,14 @@ class SalesPeopleView: View() {
                         .subscribe { it.second!!.moveDown(it.first) }
             }
 
+        }
+
+        //when customers are deleted, remove their usages
+        controller.deletedCustomers.toObservable().flatMap { deleteIds ->
+            backingItems.toObservable().doOnNext { it.customerAssignments.removeAll(deleteIds) }
+        }.subscribeWith {
+            onNext {  }
+            alertError()
         }
     }
 }

@@ -2,6 +2,7 @@ package app
 
 import javafx.collections.ObservableList
 import javafx.scene.control.Alert
+import javafx.scene.control.TableView
 import rx.Observable
 import rx.lang.kotlin.FunctionSubscriberModifier
 import rx.lang.kotlin.toObservable
@@ -63,3 +64,4 @@ fun <T> ObservableList<T>.moveDown(item: T) {
 @Suppress("USELESS_CAST")
 fun <T> Observable<T>.toSet(): Observable<Set<T>> = collect({ HashSet<T>() },{ set, t -> set.add(t)}).map { it as Set<T> }
 
+fun <T> TableView<T>.currentSelections() = selectionModel.selectedItems.toObservable().filter { it != null }
