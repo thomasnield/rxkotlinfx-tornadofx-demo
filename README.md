@@ -4,5 +4,5 @@ This is a fully-featured demo showcasing [TornadoFX](https://github.com/edvin/to
 
 This is an [RxJava](https://github.com/ReactiveX/RxJava)-driven application. A temporary backing database is stored in-memory using [SQLite](https://www.sqlite.org/), and [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc) is used to reactively query and write to it. 
 
-Just build it and run it with Gradle.  
-![](http://i.imgur.com/UJxxemy.gif)
+Just build and run with Gradle.  
+![](http://i.imgur.com/KMJQX9W.gif)
