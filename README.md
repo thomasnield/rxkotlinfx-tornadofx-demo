@@ -6,3 +6,7 @@ This is an [RxJava](https://github.com/ReactiveX/RxJava)-driven application. A t
 
 Just build and run with Gradle.  
 ![](http://i.imgur.com/KMJQX9W.gif)
+
+##Visualized Stack
+
+![](http://i.imgur.com/XzUNjqF.png)
