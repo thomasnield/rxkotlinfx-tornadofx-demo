@@ -9,9 +9,7 @@ Just build and run with Gradle.
 
 ##Stack
 
-Here is a visualization of the different libraries used, with overlaps indicating their role in interoperability. 
-
-![](http://i.imgur.com/6wIrIf2.pngh)
+Here is a list and Venn diagram of the different libraries used, with overlaps indicating their role in interoperability. 
 
 * [RxJava](https://github.com/ReactiveX/RxJava)
 * [JavaFX](http://docs.oracle.com/javase/8/javase-clienttechnologies.htm)
@@ -21,4 +19,7 @@ Here is a visualization of the different libraries used, with overlaps indicatin
 * [RxKotlinFX](https://github.com/thomasnield/RxKotlinFX)
 * [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc) 
 * [SQLite](https://github.com/xerial/sqlite-jdbc)
+
+
+![](http://i.imgur.com/6wIrIf2.pngh)
 
