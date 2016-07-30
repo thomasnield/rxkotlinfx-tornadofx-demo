@@ -12,6 +12,7 @@ Just build and run with Gradle.
 Here is a list and Venn diagram of the different libraries used, with overlaps indicating their role in interoperability. 
 
 * [RxJava](https://github.com/ReactiveX/RxJava)
+* [RxKotlin](https://github.com/ReactiveX/RxKotlin)
 * [JavaFX](http://docs.oracle.com/javase/8/javase-clienttechnologies.htm)
 * [Kotlin](https://kotlinlang.org/)
 * [TornadoFX](https://github.com/edvin/tornadofx)
