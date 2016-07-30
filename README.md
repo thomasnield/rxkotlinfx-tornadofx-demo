@@ -7,6 +7,18 @@ This is an [RxJava](https://github.com/ReactiveX/RxJava)-driven application. A t
 Just build and run with Gradle.  
 ![](http://i.imgur.com/KMJQX9W.gif)
 
-##Visualized Stack
+##Stack
 
-![](http://i.imgur.com/XzUNjqF.png)
+Here is a visualization of the different libraries used, with overlaps indicating their role in interoperability. 
+
+![](http://i.imgur.com/6wIrIf2.pngh)
+
+* [RxJava](https://github.com/ReactiveX/RxJava)
+* [JavaFX](http://docs.oracle.com/javase/8/javase-clienttechnologies.htm)
+* [Kotlin](https://kotlinlang.org/)
+* [TornadoFX](https://github.com/edvin/tornadofx)
+* [RxJavaFX](https://github.com/ReactiveX/RxJavaFX)
+* [RxKotlinFX](https://github.com/thomasnield/RxKotlinFX)
+* [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc) 
+* [SQLite](https://github.com/xerial/sqlite-jdbc)
+
