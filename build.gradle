@@ -21,7 +21,7 @@ mainClassName = 'app.MyApp'
 dependencies {
 
     //TornadoFX dependencies
-    compile 'no.tornado:tornadofx:1.5.6'
+    compile 'no.tornado:tornadofx:1.5.+'
 
 
     //sqlite and RxJava-JDBC dependencies

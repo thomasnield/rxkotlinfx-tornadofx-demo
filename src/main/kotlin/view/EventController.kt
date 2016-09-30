@@ -2,7 +2,6 @@ package view
 
 import domain.Customer
 import domain.SalesPerson
-import rx.javafx.kt.toObservable
 import rx.javafx.sources.CompositeObservable
 import tornadofx.Controller
 
@@ -16,9 +15,9 @@ class EventController: Controller() {
     val refreshSalesPeople = CompositeObservable<Unit>()
     val refreshCustomers = CompositeObservable<Unit>()
 
-    val selectedCustomers = CompositeObservable<Set<Customer>>(1) //cache last selection
-    val selectedSalesPeople = CompositeObservable<Set<SalesPerson>>(1) //cache last selection
-    val selectedApplications = CompositeObservable<Set<Int>>(1) //cache last selection
+    val selectedCustomers = CompositeObservable<Set<Customer>> { it.replay(1).autoConnect() }
+    val selectedSalesPeople = CompositeObservable<Set<SalesPerson>> { it.replay(1).autoConnect() }
+    val selectedApplications = CompositeObservable<Set<Int>> { it.replay(1).autoConnect() }
 
     val moveCustomerUp = CompositeObservable<Int>()
     val moveCustomerDown = CompositeObservable<Int>()
