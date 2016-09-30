@@ -1,5 +1,6 @@
 package app
 
+import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import tornadofx.Stylesheet
 import tornadofx.box
@@ -13,9 +14,10 @@ class Styles : Stylesheet() {
 
     init {
         label and heading {
-            padding = box(10.px)
-            fontSize = 20.px
+            padding = box(0.px,0.px,0.px,5.px)
+            fontSize = 12.px
             fontWeight = FontWeight.BOLD
+            textFill = Color.RED
         }
     }
 }

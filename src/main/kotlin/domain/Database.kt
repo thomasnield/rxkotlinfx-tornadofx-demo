@@ -6,16 +6,13 @@ import rx.lang.kotlin.subscribeWith
 import rx.lang.kotlin.toObservable
 
 /**
- * An in-memory database using SQLite holding
+ * An in-memory `Database` using SQLite holding three tables. This `Database` performs reactive querying
+ * and writing via [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc)
  */
-val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite:memory").get()).apply {
+val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite::memory:").get()).apply {
 
     //create CLIENT_COMPANY TABLE
-    val drop1 = update("DROP TABLE IF EXISTS CLIENT_COMPANY").count()
-
-    val create1 = update("CREATE TABLE CLIENT_COMPANY (ID INTEGER PRIMARY KEY, NAME VARCHAR)")
-            .dependsOn(drop1)
-            .count()
+    val create1 = update("CREATE TABLE CUSTOMER (ID INTEGER PRIMARY KEY, NAME VARCHAR)").count()
 
     val clientCompanyValues = listOf(
             "Alpha Analytics",
@@ -28,23 +25,19 @@ val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite:memory")
             "Dash Inc"
     ).toObservable()
 
-    update("INSERT INTO CLIENT_COMPANY (NAME) VALUES (?)")
+    update("INSERT INTO CUSTOMER (NAME) VALUES (?)")
         .parameters(clientCompanyValues)
         .dependsOn(create1)
         .returnGeneratedKeys()
         .getAs(Int::class.java)
         .toList()
         .subscribeWith {
-            onNext { println("CLIENT_COMPANY table created, KEYS: $it")}
+            onNext { println("CUSTOMER table created, KEYS: $it")}
             onError { throw RuntimeException(it) }
         }
 
     //create SALES_PERSON TABLE
-    val drop2 = update("DROP TABLE IF EXISTS SALES_PERSON").count()
-
-    val create2 = update("CREATE TABLE SALES_PERSON (ID INTEGER PRIMARY KEY, FIRST_NAME VARCHAR, LAST_NAME VARCHAR)")
-        .dependsOn(drop2)
-        .count()
+    val create2 = update("CREATE TABLE SALES_PERSON (ID INTEGER PRIMARY KEY, FIRST_NAME VARCHAR, LAST_NAME VARCHAR)").count()
 
     val salesPersonValues = listOf(
             "Joe","McManey",
@@ -67,11 +60,9 @@ val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite:memory")
         }
 
     //CREATE ASSIGNMENTS TABLE
-    val drop3 = update("DROP TABLE IF EXISTS ASSIGNMENT").count()
 
      update("CREATE TABLE ASSIGNMENT (ID INTEGER PRIMARY KEY, " +
-            "CLIENT_COMPANY_ID INTEGER, SALES_PERSON_ID INTEGER)")
-        .dependsOn(drop3)
+            "CUSTOMER_ID INTEGER, SALES_PERSON_ID INTEGER, APPLY_ORDER INTEGER)")
         .count()
         .subscribeWith {
             onNext { println("ASSIGNMENT table created") }

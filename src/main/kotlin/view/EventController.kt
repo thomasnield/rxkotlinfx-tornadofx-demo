@@ -1,21 +1,34 @@
 package view
 
-import domain.ClientCompany
+import domain.Customer
 import domain.SalesPerson
+import rx.javafx.kt.toObservable
 import rx.javafx.sources.CompositeObservable
 import tornadofx.Controller
 
 class EventController: Controller() {
-    val searchClients = CompositeObservable<List<Int>>()
-    val searchClientUsages = CompositeObservable<List<Int>>()
+    val searchCustomers = CompositeObservable<Set<Int>>()
+    val searchCustomerUsages = CompositeObservable<Set<Int>>()
 
-    val applyClients = CompositeObservable<List<Int>>()
-    val removeClients = CompositeObservable<List<Int>>()
+    val applyCustomers = CompositeObservable<Set<Int>>()
+    val removeCustomerUsages = CompositeObservable<Set<Int>>()
 
     val refreshSalesPeople = CompositeObservable<Unit>()
-    val refreshCompanyClients = CompositeObservable<Unit>()
+    val refreshCustomers = CompositeObservable<Unit>()
 
-    val selectedClients = CompositeObservable<List<ClientCompany>> { it.replay(1).autoConnect() }  //cache last selection
-    val selectedSalesPeople = CompositeObservable<List<SalesPerson>> { it.replay(1).autoConnect() } //cache last selection
+    val selectedCustomers = CompositeObservable<Set<Customer>>(1) //cache last selection
+    val selectedSalesPeople = CompositeObservable<Set<SalesPerson>>(1) //cache last selection
+    val selectedApplications = CompositeObservable<Set<Int>>(1) //cache last selection
 
+    val moveCustomerUp = CompositeObservable<Int>()
+    val moveCustomerDown = CompositeObservable<Int>()
+
+    val saveAssignments = CompositeObservable<Unit>()
+
+    val createNewCustomer = CompositeObservable<Unit>()
+    val deleteCustomers = CompositeObservable<Set<Int>>()
+    val deletedCustomers = CompositeObservable<Set<Int>>()
+
+    val createNewSalesPerson = CompositeObservable<Unit>()
+    val deleteSalesPerson = CompositeObservable<Set<Int>>()
 }

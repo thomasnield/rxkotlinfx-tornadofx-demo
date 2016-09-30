@@ -1,13 +1,12 @@
 package app
 
+import javafx.scene.image.Image
 import tornadofx.App
-import tornadofx.importStylesheet
+import tornadofx.addStageIcon
 import view.MainView
 
-class MyApp : App() {
-    override val primaryView = MainView::class
-
+class MyApp : App(MainView::class, Styles::class) {
     init {
-        importStylesheet(Styles::class)
+        addStageIcon(Image("/app/tornado-fx-logo.png"))
     }
 }
