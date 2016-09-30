@@ -23,6 +23,7 @@ dependencies {
     //TornadoFX dependencies
     compile 'no.tornado:tornadofx:1.5.+'
 
+    compile 'org.controlsfx:controlsfx:8.40.12'
 
     //sqlite and RxJava-JDBC dependencies
     compile 'org.xerial:sqlite-jdbc:3.8.11.2'
