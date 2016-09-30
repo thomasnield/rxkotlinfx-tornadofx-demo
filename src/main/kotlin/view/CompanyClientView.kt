@@ -18,9 +18,9 @@ class CompanyClientView: View() {
 
     init {
         with(root) {
-            top(Label("CLIENT COMPANIES"))
+            top = Label("CLIENT COMPANIES")
 
-            center(TableView<ClientCompany>()) {
+            center = tableview<ClientCompany> {
                 column("ID",ClientCompany::id)
                 column("NAME",ClientCompany::name)
 
@@ -39,7 +39,7 @@ class CompanyClientView: View() {
                         onError { alert(Alert.AlertType.ERROR,"PROBLEM!",it.message?:"").show() }
                     }
             }
-            left(ToolBar()) {
+            left = toolbar {
                 orientation = Orientation.VERTICAL
                 button("⇇\uD83D\uDD0E") {
                     controller.searchClientUsages += actionEvents().flatMap {

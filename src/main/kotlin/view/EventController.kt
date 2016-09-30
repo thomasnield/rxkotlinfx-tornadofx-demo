@@ -15,7 +15,7 @@ class EventController: Controller() {
     val refreshSalesPeople = CompositeObservable<Unit>()
     val refreshCompanyClients = CompositeObservable<Unit>()
 
-    val selectedClients = CompositeObservable<List<ClientCompany>>(1) //cache last selection
-    val selectedSalesPeople = CompositeObservable<List<SalesPerson>>(1) //cache last selection
+    val selectedClients = CompositeObservable<List<ClientCompany>> { it.replay(1).autoConnect() }  //cache last selection
+    val selectedSalesPeople = CompositeObservable<List<SalesPerson>> { it.replay(1).autoConnect() } //cache last selection
 
 }

@@ -3,7 +3,6 @@ package view
 import domain.SalesPerson
 import javafx.scene.control.Label
 import javafx.scene.control.SelectionMode
-import javafx.scene.control.TableView
 import javafx.scene.layout.BorderPane
 import rx.javafx.kt.onChangedObservable
 import rx.javafx.kt.plusAssign
@@ -11,9 +10,8 @@ import rx.lang.kotlin.filterNotNull
 import rx.lang.kotlin.subscribeWith
 import rx.lang.kotlin.toObservable
 import tornadofx.View
-import tornadofx.center
 import tornadofx.column
-import tornadofx.top
+import tornadofx.tableview
 
 class SalesPeopleView: View() {
 
@@ -23,9 +21,9 @@ class SalesPeopleView: View() {
     init {
         with(root) {
 
-            top(Label("SALES PEOPLE"))
+            top = Label("SALES PEOPLE")
 
-            center(TableView<SalesPerson>()) {
+            center = tableview<SalesPerson> {
                 column("ID",SalesPerson::id)
                 column("First Name",SalesPerson::firstName)
                 column("Last Name",SalesPerson::lastName)

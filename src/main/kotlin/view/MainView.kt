@@ -1,8 +1,6 @@
 package view
 
 import javafx.geometry.Orientation
-import javafx.scene.control.MenuBar
-import javafx.scene.control.SplitPane
 import javafx.scene.layout.BorderPane
 import rx.javafx.kt.actionEvents
 import rx.javafx.kt.plusAssign
@@ -20,7 +18,7 @@ class MainView : View() {
         title = "Client/Salesperson Assignments"
 
         with(root) {
-            top(MenuBar()) {
+            top = menubar {
                 menu("File") {
                     menuitem("Refresh").apply {
                         controller.refreshCompanyClients += actionEvents().map { Unit }
@@ -28,12 +26,10 @@ class MainView : View() {
                     }
                 }
             }
-            center(SplitPane()) {
+            center = splitpane {
                 orientation = Orientation.HORIZONTAL
-                items {
-                    this += salesPeopleView
-                    this += companyClientView
-                }
+                this += salesPeopleView
+                this += companyClientView
             }
         }
     }
