@@ -1,4 +1,4 @@
-#RxKotlinFX/TornadoFX Demo
+# RxKotlinFX/TornadoFX Demo
 
 This is a fully-featured demo showcasing [TornadoFX](https://github.com/edvin/tornadofx) used in conjunction with [RxKotlinFX](https://github.com/thomasnield/RxKotlinFX) to build a desktop application. It only took me two nights to build. 
 
@@ -7,7 +7,7 @@ This is an [RxJava](https://github.com/ReactiveX/RxJava)-driven application. A t
 Just build and run with Gradle.  
 ![](http://i.imgur.com/KMJQX9W.gif)
 
-##Stack
+## Stack
 
 Here is a list and Venn diagram of the different libraries used, with overlaps indicating their role in interoperability. 
 
