@@ -1,14 +1,15 @@
 package view
 
 import domain.Customer
+import io.reactivex.Maybe
+import io.reactivex.Observable
 import javafx.scene.control.ButtonType
 import javafx.scene.control.Dialog
 import javafx.scene.image.ImageView
 import javafx.stage.Stage
-import rx.Observable
 import tornadofx.*
 
-class NewCustomerDialog: Dialog<Observable<Int>>() {
+class NewCustomerDialog: Dialog<Maybe<Int>>() {
     private val root = Form()
 
     init {
@@ -19,9 +20,9 @@ class NewCustomerDialog: Dialog<Observable<Int>>() {
                 textfield {
                     setResultConverter {
                         if (it == ButtonType.OK)
-                            Customer.createNew(text) //returns ID for new Customer
+                            Customer.createNew(text).toMaybe()//returns ID for new Customer
                         else
-                            Observable.empty()
+                            Maybe.empty()
                     }
                 }
             }

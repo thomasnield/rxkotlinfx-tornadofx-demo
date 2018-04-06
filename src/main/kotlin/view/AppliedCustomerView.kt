@@ -1,20 +1,19 @@
 package view
 
 import app.Styles
-import app.alertError
-import app.toSet
+import com.github.thomasnield.rxkotlinfx.actionEvents
+import com.github.thomasnield.rxkotlinfx.events
+import com.github.thomasnield.rxkotlinfx.onChangedObservable
+import com.github.thomasnield.rxkotlinfx.toBinding
 import domain.Customer
-import javafx.event.ActionEvent
+import io.reactivex.Observable
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.rxkotlin.toObservable
 import javafx.geometry.Orientation
 import javafx.scene.control.TableView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
-import rx.Observable
-import rx.javafx.kt.*
-import rx.lang.kotlin.filterNotNull
-import rx.lang.kotlin.subscribeWith
-import rx.lang.kotlin.toObservable
 import tornadofx.*
 
 class AppliedCustomerView : View() {
@@ -29,50 +28,49 @@ class AppliedCustomerView : View() {
             top = label("ASSIGNED CUSTOMERS").addClass(Styles.heading)
 
             center = tableview<Customer> {
-                column("ID", Customer::id)
-                column("Name", Customer::name)
+                readonlyColumn("ID", Customer::id)
+                readonlyColumn("Name", Customer::name)
 
                 //broadcast selections
                 selectionModel.selectedItems.onChangedObservable()
-                    .flatMap { it.toObservable().filterNotNull().map { it.id }.toSet() }
-                    .addTo(controller.selectedApplications)
+                    .map { it.asSequence().filterNotNull().map { it.id }.toSet() }
+                    .subscribe { controller.selectedApplications.onNext(it) }
 
                 //subscribe to selections in SalesPeopleView extract a list of customers
-                val selectedIds = selectionModel.selectedItems.onChangedObservable().filterNotNull()
-                        .filter { it[0] != null }
-                        .flatMap { it.toObservable().map { it.id }.distinct().toSet() }
-                        .filterNotNull()
+                val selectedIds = selectionModel.selectedItems.onChangedObservable()
+                        .map { it.asSequence().filterNotNull().map { it.id }.toSet() }
                         .toBinding()
 
                 //if multiple SalesPeople are selected, we consolidate their customers distinctly.
                 //Otherwise we will push out a hot list of Customers for that one SalesPerson.
                 //It will update automatically and the switchMap() will kill it when the selection changes
-                controller.selectedSalesPeople.toObservable()
+                controller.selectedSalesPeople
                     .switchMap { selectedPeople ->
                         //the switchMap() is raw power! it unsubscribes the previous emission when a new one comes in
 
                         if (selectedPeople.size == 1) {
                             selectedPeople.toObservable().flatMap {
                                 it.customerAssignments.onChangedObservable()
-                                    .switchMap {
-                                        it.toObservable().flatMap { Customer.forId(it) }.toList()
+                                    .switchMapSingle {
+                                        it.toObservable().flatMapSingle { Customer.forId(it) }.toList()
                                     }
                             }
                         } else {
-                            selectedPeople.toObservable().flatMap { it.customerAssignments.toObservable() }
+                            selectedPeople.toObservable()
+                                    .flatMap { it.customerAssignments.toObservable() }
                                     .distinct()
-                                    .flatMap { Customer.forId(it) }
+                                    .flatMapSingle { Customer.forId(it) }
                                     .toSortedList { x,y -> x.id.compareTo(y.id) }
+                                    .toObservable()
                         }
-                    }.filterNotNull().subscribeWith {
-                        onNext {
-                            items.setAll(it)
-                            selectWhere { it.id in selectedIds.value?:setOf() }
-                            requestFocus()
-                            resizeColumnsToFitContent()
-                        }
-                        alertError()
-                    }
+                    }.subscribeBy(
+                            onNext = {
+                                items.setAll(it)
+                                selectWhere { it.id in selectedIds.value?:setOf() }
+                                requestFocus()
+                                resizeColumnsToFitContent()
+                            }
+                        )
 
                 table = this
             }
@@ -82,7 +80,7 @@ class AppliedCustomerView : View() {
                     tooltip("Move customer up (CTRL + ↑)")
 
                     //disable when multiple salespeople selected
-                    controller.selectedSalesPeople.toObservable().map { it.size > 1 }.subscribe { isDisable = it }
+                    controller.selectedSalesPeople.map { it.size > 1 }.subscribe { isDisable = it }
 
                     //broadcast move up requests
 
@@ -90,9 +88,9 @@ class AppliedCustomerView : View() {
                     val buttonEvents = actionEvents()
 
                     Observable.merge(keyEvents, buttonEvents)
+                            .filter { table.selectedItem?.id != null }
                             .map { table.selectedItem?.id }
-                            .filterNotNull()
-                            .addTo(controller.moveCustomerUp)
+                            .subscribe(controller.moveCustomerUp)
 
                     useMaxWidth = true
                 }
@@ -100,21 +98,23 @@ class AppliedCustomerView : View() {
                     tooltip("Move customer down (CTRL + ↓)")
 
                     //disable when multiple salespeople selected
-                    controller.selectedSalesPeople.toObservable().map { it.size > 1 }.subscribe { isDisable = it }
+                    controller.selectedSalesPeople.map { it.size > 1 }.subscribe { isDisable = it }
 
                     //broadcast move down requests
                     val keyEvents =  table.events(KeyEvent.KEY_PRESSED).filter { it.isControlDown && it.code == KeyCode.DOWN }
                     val buttonEvents = actionEvents()
 
                     Observable.merge(keyEvents, buttonEvents)
-                        .map { table.selectedItem?.id }.filterNotNull().addTo(controller.moveCustomerDown)
+                        .filter { table.selectedItem != null }
+                        .map { table.selectedItem!!.id }
+                        .subscribe { controller.moveCustomerDown.onNext(it) }
 
                     useMaxWidth = true
                 }
                 button("\uD83D\uDD0E⇉") {
                     actionEvents().flatMap {
-                        controller.selectedApplications.toObservable().take(1)
-                    }.addTo(controller.searchCustomers)
+                        controller.selectedApplications.take(1)
+                    }.subscribe(controller.searchCustomers)
                 }
             }
         }

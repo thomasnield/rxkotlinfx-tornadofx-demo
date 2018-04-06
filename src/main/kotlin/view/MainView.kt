@@ -1,12 +1,8 @@
 package view
 
+import com.github.thomasnield.rxkotlinfx.actionEvents
 import javafx.geometry.Orientation
-import javafx.scene.control.MenuBar
-import javafx.scene.control.SplitPane
 import javafx.scene.layout.BorderPane
-import rx.javafx.kt.actionEvents
-import rx.javafx.kt.addTo
-import rx.javafx.kt.plusAssign
 import tornadofx.*
 
 class MainView : View() {
@@ -25,13 +21,13 @@ class MainView : View() {
             setPrefSize(940.0,610.0)
             top = menubar {
                 menu("File") {
-                    menuitem("Refresh").apply {
-                        controller.refreshCustomers += actionEvents().map { Unit }
-                        controller.refreshSalesPeople += actionEvents().map { Unit }
+                    item("Refresh").apply {
+                        actionEvents().map { Unit }.subscribe(controller.refreshCustomers)
+                        actionEvents().map { Unit }.subscribe(controller.refreshSalesPeople)
                     }
                 }
                 menu("Edit") {
-                    menuitem("Create Customer").actionEvents().map { Unit }.addTo(controller.createNewCustomer)
+                    item("Create Customer").actionEvents().map { Unit }.subscribe(controller.createNewCustomer)
                 }
             }
             center = splitpane {

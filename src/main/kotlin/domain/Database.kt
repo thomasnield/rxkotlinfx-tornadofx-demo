@@ -1,20 +1,22 @@
 package domain
 
-import com.github.davidmoten.rx.jdbc.ConnectionProviderFromUrl
-import com.github.davidmoten.rx.jdbc.Database
-import rx.lang.kotlin.subscribeWith
-import rx.lang.kotlin.toObservable
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.rxkotlin.toObservable
+import org.nield.rxkotlinjdbc.execute
+import org.nield.rxkotlinjdbc.insert
+import java.sql.DriverManager
+
 
 /**
  * An in-memory `Database` using SQLite holding three tables. This `Database` performs reactive querying
  * and writing via [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc)
  */
-val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite::memory:").get()).apply {
+val db = DriverManager.getConnection("jdbc:sqlite::memory:").apply {
 
     //create CLIENT_COMPANY TABLE
-    val create1 = update("CREATE TABLE CUSTOMER (ID INTEGER PRIMARY KEY, NAME VARCHAR)").count()
+   execute("CREATE TABLE CUSTOMER (ID INTEGER PRIMARY KEY, NAME VARCHAR)").toSingle().subscribe()
 
-    val clientCompanyValues = listOf(
+    listOf(
             "Alpha Analytics",
             "Rexon Solutions",
             "Travis Technologies",
@@ -24,50 +26,46 @@ val db: Database = Database.from(ConnectionProviderFromUrl("jdbc:sqlite::memory:
             "Nield Industrial",
             "Dash Inc"
     ).toObservable()
-
-    update("INSERT INTO CUSTOMER (NAME) VALUES (?)")
-        .parameters(clientCompanyValues)
-        .dependsOn(create1)
-        .returnGeneratedKeys()
-        .getAs(Int::class.java)
-        .toList()
-        .subscribeWith {
-            onNext { println("CUSTOMER table created, KEYS: $it")}
-            onError { throw RuntimeException(it) }
-        }
+    .flatMap {
+        insert("INSERT INTO CUSTOMER (NAME) VALUES (?)")
+                .parameter(it)
+                .toObservable { it.getInt(0) }
+    }
+    .toList()
+    .subscribeBy(
+        onSuccess = { println("CUSTOMER table created, KEYS: $it")},
+        onError = { throw RuntimeException(it) }
+    )
 
     //create SALES_PERSON TABLE
-    val create2 = update("CREATE TABLE SALES_PERSON (ID INTEGER PRIMARY KEY, FIRST_NAME VARCHAR, LAST_NAME VARCHAR)").count()
+    execute("CREATE TABLE SALES_PERSON (ID INTEGER PRIMARY KEY, FIRST_NAME VARCHAR, LAST_NAME VARCHAR)").toSingle().subscribe()
 
     val salesPersonValues = listOf(
-            "Joe","McManey",
-            "Heidi","Howell",
-            "Eric","Wentz",
-            "Jonathon","Smith",
-            "Samantha","Stewart",
-            "Jillian","Michelle"
+            "Joe" to "McManey",
+            "Heidi" to "Howell",
+            "Eric" to "Wentz",
+            "Jonathon" to "Smith",
+            "Samantha" to "Stewart",
+            "Jillian" to "Michelle"
     ).toObservable()
 
-    update("INSERT INTO SALES_PERSON (FIRST_NAME,LAST_NAME) VALUES (?,?)")
-        .dependsOn(create2)
-        .parameters(salesPersonValues)
-        .returnGeneratedKeys()
-        .getAs(Int::class.java)
-        .toList()
-        .subscribeWith {
-            onNext { println("SALES_PERSON table created, KEYS: $it") }
-            onError { throw RuntimeException(it) }
-        }
+    salesPersonValues.flatMapSingle {
+        insert("INSERT INTO SALES_PERSON (FIRST_NAME,LAST_NAME) VALUES (?,?)")
+                .parameters(it.first, it.second)
+                .toSingle { it.getInt(1) }
+    }.subscribeBy(
+            onNext = { println("SALES_PERSON table created, KEYS: $it") },
+            onError = { throw RuntimeException(it) }
+        )
 
     //CREATE ASSIGNMENTS TABLE
-
-     update("CREATE TABLE ASSIGNMENT (ID INTEGER PRIMARY KEY, " +
+     execute("CREATE TABLE ASSIGNMENT (ID INTEGER PRIMARY KEY, " +
             "CUSTOMER_ID INTEGER, SALES_PERSON_ID INTEGER, APPLY_ORDER INTEGER)")
-        .count()
-        .subscribeWith {
-            onNext { println("ASSIGNMENT table created") }
-            onError { throw RuntimeException(it) }
-        }
+        .toSingle()
+        .subscribeBy(
+            onSuccess  = { println("ASSIGNMENT table created") },
+            onError =  { throw RuntimeException(it) }
+        )
 }
 
 

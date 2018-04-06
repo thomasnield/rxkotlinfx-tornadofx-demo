@@ -1,12 +1,12 @@
 package view
 
 import domain.SalesPerson
+import io.reactivex.Observable
 import javafx.scene.control.ButtonType
 import javafx.scene.control.Dialog
 import javafx.scene.control.TextField
 import javafx.scene.image.ImageView
 import javafx.stage.Stage
-import rx.Observable
 import tornadofx.*
 
 class NewSalesPersonDialog: Dialog<Observable<Int>>() {

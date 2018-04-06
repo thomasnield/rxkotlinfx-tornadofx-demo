@@ -1,40 +1,26 @@
 package app
 
+import io.reactivex.Observable
 import javafx.collections.ObservableList
-import javafx.scene.control.Alert
 import javafx.scene.control.TableView
-import rx.Observable
-import rx.lang.kotlin.FunctionSubscriberModifier
-import rx.lang.kotlin.toObservable
-import tornadofx.alert
-import java.util.*
-
-/**
- * Standardized `onError()` notification that uses a JavaFX `Alert`
- */
-fun <T> FunctionSubscriberModifier<T>.alertError() {
-    onError {
-        it.printStackTrace()
-        alert(Alert.AlertType.ERROR,"PROBLEM!",it.message?:"").show()
-    }
-}
+import io.reactivex.rxkotlin.toObservable
 
 /**
  * Workaround for [SQLite locking error](https://github.com/davidmoten/rxjava-jdbc#note-for-sqlite-users).
  * Collecting items and then emitting them again allows query
  * to close and open connection for other queries
  */
-fun <T> Observable<T>.flatCollect(): Observable<T> = toList().flatMap { it.toObservable() }
+fun <T: Any> Observable<T>.flatCollect() = toList().flatMapObservable { it.toObservable() }
 
 /**
  * Adds the item to an `Observablelist<T>` if it is not present
  */
 fun <T> ObservableList<T>.addIfAbsent(item: T): Boolean {
-    if (!contains(item)) {
+    return if (!contains(item)) {
         add(item)
-        return true
+        true
     } else {
-        return false
+        false
     }
 }
 
@@ -64,7 +50,6 @@ fun <T> ObservableList<T>.deleteWhere(predicate: (T) -> Boolean) {
     asSequence().toList().asSequence().filter(predicate).forEach { remove(it) }
 }
 
-@Suppress("USELESS_CAST")
-fun <T> Observable<T>.toSet(): Observable<Set<T>> = collect({ HashSet<T>() },{ set, t -> set.add(t)}).map { it as Set<T> }
+fun <T> Observable<T>.toSet() = collect({ HashSet<T>() },{ set, t -> set.add(t)}).map { it as Set<T> }
 
-val <T> TableView<T>.currentSelections: Observable<T> get() = selectionModel.selectedItems.toObservable().filter { it != null }
+val <T: Any> TableView<T>.currentSelections get() = selectionModel.selectedItems.toObservable()

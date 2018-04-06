@@ -3,7 +3,14 @@ package view
 import app.Styles
 import app.currentSelections
 import app.toSet
+import com.github.thomasnield.rxkotlinfx.actionEvents
+import com.github.thomasnield.rxkotlinfx.events
+import com.github.thomasnield.rxkotlinfx.onChangedObservable
+import com.github.thomasnield.rxkotlinfx.toMaybe
 import domain.Customer
+import io.reactivex.Observable
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.rxkotlin.toObservable
 import javafx.geometry.Orientation
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonType
@@ -12,11 +19,6 @@ import javafx.scene.control.TableView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.paint.Color
-import rx.Observable
-import rx.javafx.kt.*
-import rx.lang.kotlin.filterNotNull
-import rx.lang.kotlin.subscribeWith
-import rx.lang.kotlin.toObservable
 import tornadofx.*
 
 class CustomerView : View() {
@@ -27,34 +29,34 @@ class CustomerView : View() {
         top = label("CUSTOMER").addClass(Styles.heading)
 
         center = tableview<Customer> {
-            column("ID", Customer::id)
-            column("NAME", Customer::name)
+            readonlyColumn("ID", Customer::id)
+            readonlyColumn("NAME", Customer::name)
 
             selectionModel.selectionMode = SelectionMode.MULTIPLE
 
             //broadcast selections
             selectionModel.selectedItems.onChangedObservable()
-                    .flatMap { it.toObservable().filterNotNull().toSet() }
-                    .addTo(controller.selectedCustomers )
+                    .map { it.filterNotNull().toSet() }
+                    .subscribe(controller.selectedCustomers )
 
             //Import data and refresh event handling
-            controller.refreshCustomers.toObservable().startWith(Unit)
-                    .flatMap {
+            controller.refreshCustomers.startWith(Unit)
+                    .flatMapSingle {
                         Customer.all.toList()
-                    }.subscribeWith {
-                        onNext { items.setAll(it) }
-                        onError { alert(Alert.AlertType.ERROR, "PROBLEM!", it.message ?: "").show() }
-                    }
+                    }.subscribeBy(
+                        onNext = { items.setAll(it) },
+                        onError = { alert(Alert.AlertType.ERROR, "PROBLEM!", it.message ?: "").show() }
+                    )
 
             //handle search request
-            controller.searchCustomers.toObservable()
-                .subscribeWith {
-                    onNext { ids ->
+            controller.searchCustomers
+                .subscribeBy(
+                    onNext = { ids ->
                         moveToTopWhere { it.id in ids }
                         requestFocus()
-                    }
-                    onError { it.printStackTrace() }
-                }
+                    },
+                    onError  ={ it.printStackTrace() }
+                )
 
             table = this
         }
@@ -62,22 +64,22 @@ class CustomerView : View() {
             orientation = Orientation.VERTICAL
             button("⇇\uD83D\uDD0E") {
 
-                actionEvents().flatMap {
-                    controller.selectedCustomers.toObservable().take(1)
+                actionEvents().flatMapSingle {
+                    controller.selectedCustomers.take(1)
                             .flatMap { it.toObservable() }
                             .map { it.id }
                             .toSet()
-                }.addTo(controller.searchCustomerUsages)
+                }.subscribe(controller.searchCustomerUsages)
             }
             button("⇉\uD83D\uDD0E") {
 
-                actionEvents().flatMap {
-                    controller.selectedSalesPeople.toObservable().take(1)
+                actionEvents().flatMapSingle {
+                    controller.selectedSalesPeople.take(1)
                             .flatMap { it.toObservable() }
                             .flatMap { it.customerAssignments.toObservable() }
                             .distinct()
                             .toSet()
-                }.addTo(controller.searchCustomers)
+                }.subscribe(controller.searchCustomers)
             }
             button("⇇") {
                 tooltip("Apply selected Customers to Selected Sales Persons (CTRL + ←)")
@@ -88,12 +90,12 @@ class CustomerView : View() {
                 val keyEvents = table.events(KeyEvent.KEY_PRESSED).filter { it.isControlDown && it.code == KeyCode.LEFT }
                 val buttonEvents = actionEvents()
 
-                Observable.merge(keyEvents, buttonEvents).flatMap {
-                    controller.selectedCustomers.toObservable().take(1)
+                Observable.merge(keyEvents, buttonEvents).flatMapSingle {
+                    controller.selectedCustomers.take(1)
                             .flatMap { it.toObservable() }
                             .map { it.id }
                             .toSet()
-                }.addTo(controller.applyCustomers)
+                }.subscribe(controller.applyCustomers)
             }
             //remove selected customers
             button("⇉") {
@@ -105,12 +107,12 @@ class CustomerView : View() {
                 val keyEvents = table.events(KeyEvent.KEY_PRESSED).filter { it.isControlDown && it.code == KeyCode.RIGHT }
                 val buttonEvents = actionEvents()
 
-                Observable.merge(keyEvents,buttonEvents).flatMap {
-                    controller.selectedCustomers.toObservable().take(1)
+                Observable.merge(keyEvents,buttonEvents).flatMapSingle {
+                    controller.selectedCustomers.take(1)
                             .flatMap { it.toObservable() }
                             .map { it.id }
                             .toSet()
-                }.addTo(controller.removeCustomerUsages)
+                }.subscribe(controller.removeCustomerUsages)
             }
             //add customer button
             button("\u2795") {
@@ -118,7 +120,7 @@ class CustomerView : View() {
                 useMaxWidth = true
                 textFill = Color.BLUE
 
-                actionEvents().map { Unit }.addTo(controller.createNewCustomer)
+                actionEvents().map { Unit }.subscribe(controller.createNewCustomer)
             }
 
             //remove customer button
@@ -127,46 +129,48 @@ class CustomerView : View() {
                 useMaxWidth = true
                 textFill = Color.RED
 
-                actionEvents().flatMap {
-                    table.selectionModel.selectedItems.toObservable()
-                        .filterNotNull()
-                        .map { it.id }
-                        .toSet()
-                }.addTo(controller.deleteCustomers)
+                actionEvents().map {
+                    table.selectionModel.selectedItems
+                            .asSequence()
+                            .filterNotNull()
+                            .map { it.id }
+                            .toSet()
+                }.subscribe(controller.deleteCustomers)
             }
         }
 
         //create new Customer requests
-        controller.createNewCustomer.toObservable()
-            .flatMap { NewCustomerDialog().toObservable() }
-            .flatMap { it }
-            .flatMap { Customer.forId(it) }
-            .subscribeWith {
-                onNext {
+        controller.createNewCustomer
+            .flatMapMaybe { NewCustomerDialog().toMaybe() }
+            .flatMapMaybe { it }
+            .flatMapSingle { Customer.forId(it) }
+            .subscribe {
                     table.items.add(it)
                     table.selectionModel.clearSelection()
                     table.selectionModel.select(it)
                     table.requestFocus()
                 }
-            }
+
 
         //handle Customer deletions
-        val deletions = controller.deleteCustomers.toObservable()
-            .flatMap {
+        val deletions = controller.deleteCustomers
+            .flatMapSingle {
                 table.currentSelections.toList()
-            }.flatMap { deleteItems ->
+            }.flatMapSingle { deleteItems ->
                 Alert(Alert.AlertType.WARNING, "Are you sure you want to delete these ${deleteItems.size} customers?", ButtonType.YES, ButtonType.NO)
-                    .toObservable().filter { it == ButtonType.YES }
+                    .toMaybe().filter { it == ButtonType.YES }
                     .map { deleteItems }
-                    .flatMap { it.toObservable() }
-                    .flatMap { it.delete() }
+                    .flatMapObservable { it.toObservable() }
+                    .flatMapSingle { it.delete() }
                     .toSet()
             }.publish() //publish() to prevent multiple subscriptions triggering alert multiple times
 
-        deletions.addTo(controller.deletedCustomers)
+        deletions.subscribe(controller.deletedCustomers)
 
         //refresh on deletion
-        controller.deletedCustomers.toObservable().map { Unit }.addTo(controller.refreshCustomers) //push this refresh customers
+        controller.deletedCustomers
+                .map { Unit }
+                .subscribe(controller.refreshCustomers) //push this refresh customers
 
         //trigger the publish
         deletions.connect()

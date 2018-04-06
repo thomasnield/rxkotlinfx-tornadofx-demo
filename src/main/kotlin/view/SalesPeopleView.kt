@@ -1,7 +1,11 @@
 package view
 
 import app.*
+import com.github.thomasnield.rxkotlinfx.actionEvents
+import com.github.thomasnield.rxkotlinfx.onChangedObservable
+import com.github.thomasnield.rxkotlinfx.toMaybe
 import domain.SalesPerson
+import io.reactivex.rxkotlin.toObservable
 import javafx.geometry.Orientation
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonType
@@ -10,13 +14,6 @@ import javafx.scene.control.TableView
 import javafx.scene.paint.Color
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.GlyphFontRegistry
-import rx.javafx.kt.actionEvents
-import rx.javafx.kt.addTo
-import rx.javafx.kt.onChangedObservable
-import rx.javafx.kt.toObservable
-import rx.lang.kotlin.filterNotNull
-import rx.lang.kotlin.subscribeWith
-import rx.lang.kotlin.toObservable
 import tornadofx.*
 
 class SalesPeopleView: View() {
@@ -40,7 +37,7 @@ class SalesPeopleView: View() {
                 useMaxWidth = true
                 actionEvents()
                         .map { Unit }
-                        .addTo(controller.saveAssignments)
+                        .subscribe(controller.saveAssignments)
             }
 
             //refresh button
@@ -48,14 +45,16 @@ class SalesPeopleView: View() {
                 useMaxWidth = true
                 actionEvents()
                         .map { Unit }
-                        .addTo(controller.refreshSalesPeople)
+                        .subscribe(controller.refreshSalesPeople)
             }
 
             //add button
             button("", addGlyph) {
                 tooltip("Create a new Sales Person")
                 useMaxWidth = true
-                actionEvents().map { Unit }.addTo(controller.createNewSalesPerson)
+                actionEvents()
+                        .map { Unit }
+                        .subscribe(controller.createNewSalesPerson)
             }
 
             //remove button
@@ -63,12 +62,11 @@ class SalesPeopleView: View() {
             button("",removeGlyph) {
                 tooltip("Remove selected Customers")
                 useMaxWidth = true
-                actionEvents().flatMap {
+                actionEvents().flatMapSingle {
                     table.selectionModel.selectedItems.toObservable()
-                            .filterNotNull()
                             .map { it.id }
                             .toSet()
-                }.addTo(controller.deleteSalesPerson)
+                }.subscribe(controller.deleteSalesPerson)
             }
         }
 
@@ -76,74 +74,62 @@ class SalesPeopleView: View() {
 
         center = tableview<SalesPerson> {
             table = this
-            column("ID",SalesPerson::id)
-            column("First Name",SalesPerson::firstName)
-            column("Last Name",SalesPerson::lastName)
+            readonlyColumn("ID",SalesPerson::id)
+            readonlyColumn("First Name",SalesPerson::firstName)
+            readonlyColumn("Last Name",SalesPerson::lastName)
             column("Assigned Clients",SalesPerson::customerAssignmentsConcat)
 
             selectionModel.selectionMode = SelectionMode.MULTIPLE
 
             //broadcast selections
             selectionModel.selectedItems.onChangedObservable()
-                    .flatMap { it.toObservable().filterNotNull().toSet() }
-                    .addTo(controller.selectedSalesPeople)
+                    .map { it.asSequence().filterNotNull().toSet() }
+                    .subscribe(controller.selectedSalesPeople)
 
             //handle search requests
-            controller.searchCustomerUsages.toObservable().subscribeWith {
-                onNext { ids ->
+            controller.searchCustomerUsages.subscribe { ids ->
                     moveToTopWhere { it.customerAssignments.any { it in ids } }
                     requestFocus()
                 }
-                alertError()
-            }
 
             //handle adds
-            controller.applyCustomers.toObservable().subscribeWith {
-                onNext { ids ->
+            controller.applyCustomers.subscribe { ids ->
                     selectionModel.selectedItems.asSequence().filterNotNull().forEach {
                         it.customerAssignments.addIfAbsent(*ids.toTypedArray())
                     }
-                }
-                alertError()
             }
 
             //handle removals
-            controller.removeCustomerUsages.toObservable().subscribeWith {
-                onNext { ids ->
+            controller.removeCustomerUsages.subscribe { ids ->
                     selectionModel.selectedItems.asSequence().filterNotNull().forEach {
                         it.customerAssignments.removeAll(ids)
                     }
-                }
-                alertError()
             }
 
             //handle commits
-            controller.saveAssignments.toObservable().flatMap {
-                items.toObservable().flatMap { it.saveAssignments() }
+            controller.saveAssignments.flatMapMaybe {
+                items.toObservable().flatMapSingle { it.saveAssignments() }
                         .reduce { x,y -> x + y}
-                        .doOnNext { println("Committed $it changes") }
+                        .doOnSuccess { println("Committed $it changes") }
             }.map { Unit }
-                    .addTo(controller.refreshSalesPeople)
+             .subscribe(controller.refreshSalesPeople)
 
             //handle refresh events and import data
-            controller.refreshSalesPeople.toObservable()
+            controller.refreshSalesPeople
                     .doOnNext { items.forEach { it.dispose() } } //important to kill subscriptions on each SalesPerson
                     .startWith(Unit)
-                    .flatMap {
+                    .flatMapSingle {
                         SalesPerson.all.toList()
-                    }.subscribeWith {
-                onNext { items.setAll(it) }
-                alertError()
-            }
+                    }.subscribe { items.setAll(it) }
 
             //handle move up and move down requests
-            controller.moveCustomerUp.toObservable()
+            controller.moveCustomerUp
                     .map { it to selectedItem?.customerAssignments }
                     .filter { it.second != null }
                     .subscribe { it.second!!.moveUp(it.first) }
 
             //handle move up and move down requests
-            controller.moveCustomerDown.toObservable()
+            controller.moveCustomerDown
                     .map { it to selectedItem?.customerAssignments }
                     .filter { it.second != null }
                     .subscribe { it.second!!.moveDown(it.first) }
@@ -151,42 +137,33 @@ class SalesPeopleView: View() {
     }
     init {
         //when customers are deleted, remove their usages
-        controller.deletedCustomers.toObservable().flatMap { deleteIds ->
+        controller.deletedCustomers.flatMap { deleteIds ->
             table.items.toObservable().doOnNext { it.customerAssignments.removeAll(deleteIds) }
-        }.subscribeWith {
-            onNext {  }
-            alertError()
-        }
+        }.subscribe()
 
         //handle new Sales Person request
-        controller.createNewSalesPerson.toObservable().flatMap {
-            NewSalesPersonDialog().toObservable()
-                    .flatMap { it }
+        controller.createNewSalesPerson.flatMap {
+            NewSalesPersonDialog().toMaybe()
+                    .flatMapObservable { it }
                     .flatMap { SalesPerson.forId(it) }
-        }.subscribeWith {
-            onNext {
-                table.selectionModel.clearSelection()
-                table.items.add(it)
-                table.selectionModel.select(it)
-                table.requestFocus()
-            }
-            alertError()
+        }.subscribe {
+            table.selectionModel.clearSelection()
+            table.items.add(it)
+            table.selectionModel.select(it)
+            table.requestFocus()
         }
 
         //handle sales person deletions
-        controller.deleteSalesPerson.toObservable().flatMap {
+        controller.deleteSalesPerson.flatMapSingle {
             table.currentSelections.toList().flatMap { deleteItems ->
-                Alert(Alert.AlertType.WARNING, "Are you sure you want to delete these ${deleteItems.size} sales people?", ButtonType.YES, ButtonType.NO).toObservable()
+                Alert(Alert.AlertType.WARNING, "Are you sure you want to delete these ${deleteItems.size} sales people?", ButtonType.YES, ButtonType.NO).toMaybe()
                     .filter { it == ButtonType.YES }
-                    .flatMap {  deleteItems.toObservable() }
-                    .flatMap { it.delete() }
+                    .flatMapObservable {  deleteItems.toObservable() }
+                    .flatMapSingle { it.delete() }
                     .toSet()
             }
-        }.subscribeWith {
-            onNext { deletedIds ->
-                table.items.deleteWhere { it.id in deletedIds }
-            }
-            alertError()
+        }.subscribe { deletedIds ->
+            table.items.deleteWhere { it.id in deletedIds }
         }
     }
 }
