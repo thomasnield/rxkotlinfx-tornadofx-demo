@@ -27,9 +27,9 @@ val db = DriverManager.getConnection("jdbc:sqlite::memory:").apply {
             "Dash Inc"
     ).toObservable()
     .flatMap {
-        insert("INSERT INTO CUSTOMER (NAME) VALUES (?)")
-                .parameter(it)
-                .toObservable { it.getInt(0) }
+        insert("INSERT INTO CUSTOMER (NAME) VALUES (:name)")
+                .parameter("name", it)
+                .toObservable { it.getInt(1) }
     }
     .toList()
     .subscribeBy(
@@ -50,8 +50,9 @@ val db = DriverManager.getConnection("jdbc:sqlite::memory:").apply {
     ).toObservable()
 
     salesPersonValues.flatMapSingle {
-        insert("INSERT INTO SALES_PERSON (FIRST_NAME,LAST_NAME) VALUES (?,?)")
-                .parameters(it.first, it.second)
+        insert("INSERT INTO SALES_PERSON (FIRST_NAME,LAST_NAME) VALUES (:firstName,:lastName)")
+                .parameter("firstName", it.first)
+                .parameter("lastName", it.second)
                 .toSingle { it.getInt(1) }
     }.subscribeBy(
             onNext = { println("SALES_PERSON table created, KEYS: $it") },

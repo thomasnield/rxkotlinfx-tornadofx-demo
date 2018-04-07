@@ -28,10 +28,8 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
         mutableListOf<Int>().apply {
             assignmentsFor(id)
                     .map { it.customerId }
-                    .subscribeBy(
-                        onNext = { add(it) },
-                        onError = { throw RuntimeException(it) }
-                    ).addTo(disposables)
+                    .subscribe { add(it) }
+                    .addTo(disposables)
         }
     }
 
@@ -102,27 +100,30 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
 
         //Retrieves all assigned CompanyClient ID's for a given SalesPerson
         fun assignmentsFor(salesPersonId: Int) =
-                db.select("SELECT * FROM ASSIGNMENT WHERE SALES_PERSON_ID = ? ORDER BY APPLY_ORDER")
-                        .parameter(salesPersonId)
+                db.select("SELECT * FROM ASSIGNMENT WHERE SALES_PERSON_ID = :salesPersonId ORDER BY APPLY_ORDER")
+                        .parameter("salesPersonId", salesPersonId)
                         .toObservable { Assignment(it.getInt("ID"), it.getInt("SALES_PERSON_ID"), it.getInt("CUSTOMER_ID"), it.getInt("APPLY_ORDER")) }
                         .flatCollect()
 
         fun createNew(firstName: String, lastName: String) =
-                db.insert("INSERT INTO SALES_PERSON (FIRST_NAME,LAST_NAME) VALUES (?,?)")
-                        .parameters(firstName, lastName)
+                db.insert("INSERT INTO SALES_PERSON (FIRST_NAME,LAST_NAME) VALUES (:firstName,:lastName)")
+                        .parameter("firstName", firstName)
+                        .parameter("lastName", lastName)
                         .toObservable { it.getInt(1) }
                         .flatCollect()
 
         //commits assignments
         private fun writeAssignment(assignment: Assignment) =
-                db.insert("INSERT INTO ASSIGNMENT (SALES_PERSON_ID, CUSTOMER_ID, APPLY_ORDER) VALUES (?,?,?)")
-                        .parameters(assignment.salesPersonId, assignment.customerId, assignment.order)
+                db.insert("INSERT INTO ASSIGNMENT (SALES_PERSON_ID, CUSTOMER_ID, APPLY_ORDER) VALUES (:salesPersonId, :customerId, :applyOrder)")
+                        .parameter("salesPersonId", assignment.salesPersonId)
+                        .parameter("customerId", assignment.customerId)
+                        .parameter("applyOrder", assignment.order)
                         .toSingle { it.getInt(1) }
 
         //deletes assignments
         private fun removeAssignment(assignmentId: Int) =
-                db.execute("DELETE FROM ASSIGNMENT WHERE ID = ?")
-                        .parameter(assignmentId)
+                db.execute("DELETE FROM ASSIGNMENT WHERE ID = :id")
+                        .parameter("id",assignmentId)
                         .toSingle()
     }
 }

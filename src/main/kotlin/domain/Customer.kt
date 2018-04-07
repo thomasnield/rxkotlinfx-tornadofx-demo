@@ -15,8 +15,8 @@ class Customer(val id: Int, val name: String) {
                 .parameter(id)
                 .toSingle { Customer(it.getInt("ID"), it.getString("NAME")) }
 
-        fun createNew(name: String) = db.insert("INSERT INTO CUSTOMER (NAME) VALUES (?)")
-            .parameter(name)
+        fun createNew(name: String) = db.insert("INSERT INTO CUSTOMER (NAME) VALUES (:name)")
+            .parameter("name",name)
             .toSingle { it.getInt(1) }
     }
 
