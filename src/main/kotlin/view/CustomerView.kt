@@ -62,6 +62,8 @@ class CustomerView : View() {
         }
         left = toolbar {
             orientation = Orientation.VERTICAL
+
+            // search selected customers on AppliedCustomerView
             button("⇇\uD83D\uDD0E") {
 
                 actionEvents().flatMapSingle {
@@ -71,6 +73,7 @@ class CustomerView : View() {
                             .toSet()
                 }.subscribe(controller.searchCustomerUsages)
             }
+            // search selected applied
             button("⇉\uD83D\uDD0E") {
 
                 actionEvents().flatMapSingle {
