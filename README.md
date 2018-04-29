@@ -2,7 +2,7 @@
 
 This is a fully-featured demo showcasing [TornadoFX](https://github.com/edvin/tornadofx) used in conjunction with [RxKotlinFX](https://github.com/thomasnield/RxKotlinFX) to build a desktop application. It only took me two nights to build. 
 
-This is an [RxJava](https://github.com/ReactiveX/RxJava)-driven application. A temporary backing database is stored in-memory using [SQLite](https://www.sqlite.org/), and [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc) is used to reactively query and write to it. 
+This is an [RxJava](https://github.com/ReactiveX/RxJava)-driven application. A temporary backing database is stored in-memory using [SQLite](https://www.sqlite.org/), and [RxKotlin-JDBC](https://github.com/thomasnield/rxkotlin-jdbc) is used to reactively query and write to it. 
 
 Just build and run with Gradle.  
 ![](http://i.imgur.com/KMJQX9W.gif)
@@ -18,7 +18,7 @@ Here is a list and Venn diagram of the different libraries used, with overlaps i
 * [TornadoFX](https://github.com/edvin/tornadofx)
 * [RxJavaFX](https://github.com/ReactiveX/RxJavaFX)
 * [RxKotlinFX](https://github.com/thomasnield/RxKotlinFX)
-* [RxJava-JDBC](https://github.com/davidmoten/rxjava-jdbc) 
+* [RxKotlin-JDBC](https://github.com/thomasnield/rxkotlin-jdbc) 
 * [SQLite](https://github.com/xerial/sqlite-jdbc)
 
 
