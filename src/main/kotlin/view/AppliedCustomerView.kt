@@ -37,16 +37,13 @@ class AppliedCustomerView : View() {
                     .subscribe { controller.selectedApplications.onNext(it) }
 
                 //subscribe to selections in SalesPeopleView extract a list of customers
-                val selectedIds = selectionModel.selectedItems.onChangedObservable()
-                        .map { it.asSequence().filterNotNull().map { it.id }.toSet() }
-                        .toBinding()
 
-                //if multiple SalesPeople are selected, we consolidate their customers distinctly.
+                //If multiple SalesPeople are selected, we consolidate their customers distinctly.
                 //Otherwise we will push out a hot list of Customers for that one SalesPerson.
                 //It will update automatically and the switchMap() will kill it when the selection changes
                 controller.selectedSalesPeople
                     .switchMap { selectedPeople ->
-                        //the switchMap() is raw power! it unsubscribes the previous emission when a new one comes in
+                        //the switchMap() is amazing! it unsubscribes the previous mapped Observable when a new one comes in
 
                         if (selectedPeople.size == 1) {
                             selectedPeople.toObservable().flatMap {
@@ -66,7 +63,7 @@ class AppliedCustomerView : View() {
                     }.subscribeBy(
                             onNext = {
                                 items.setAll(it)
-                                selectWhere { it.id in selectedIds.value?:setOf() }
+                                selectWhere { it.id in selectionModel.selectedItems.asSequence().filterNotNull().map { it.id }.toSet() }
                                 requestFocus()
                                 resizeColumnsToFitContent()
                             }
@@ -83,7 +80,6 @@ class AppliedCustomerView : View() {
                     controller.selectedSalesPeople.map { it.size > 1 }.subscribe { isDisable = it }
 
                     //broadcast move up requests
-
                     val keyEvents =  table.events(KeyEvent.KEY_PRESSED).filter { it.isControlDown && it.code == KeyCode.UP }
                     val buttonEvents = actionEvents()
 
@@ -92,6 +88,11 @@ class AppliedCustomerView : View() {
                             .map { table.selectedItem?.id }
                             .subscribe(controller.moveCustomerUp)
 
+
+                    // re-select moved customer
+                    controller.moveCustomerUp.subscribe { customerId ->
+                        table.selectWhere { it.id == customerId  }
+                    }
                     useMaxWidth = true
                 }
                 button("▼") {
@@ -107,7 +108,13 @@ class AppliedCustomerView : View() {
                     Observable.merge(keyEvents, buttonEvents)
                         .filter { table.selectedItem != null }
                         .map { table.selectedItem!!.id }
-                        .subscribe { controller.moveCustomerDown.onNext(it) }
+                        .subscribe(controller.moveCustomerDown)
+
+
+                    // re-select moved customer
+                    controller.moveCustomerDown.subscribe { customerId ->
+                        table.selectWhere { it.id == customerId  }
+                    }
 
                     useMaxWidth = true
                 }

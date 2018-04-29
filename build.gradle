@@ -32,7 +32,7 @@ dependencies {
 
     //sqlite and RxJava-JDBC dependencies
     compile 'org.xerial:sqlite-jdbc:3.21.0.1'
-    compile 'org.nield:rxkotlin-jdbc:0.2.3'
+    compile 'org.nield:rxkotlin-jdbc:0.2.5'
     compile 'org.slf4j:slf4j-simple:1.7.21'
 
     //RxKotlin and RxKotlinFX dependencies
