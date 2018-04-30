@@ -1,6 +1,6 @@
 # RxKotlinFX/TornadoFX Demo
 
-This is a fully-featured demo showcasing [TornadoFX](https://github.com/edvin/tornadofx) used in conjunction with [RxKotlinFX](https://github.com/thomasnield/RxKotlinFX) to build a desktop application. It only took me two nights to build. 
+This is a fully-featured demo showcasing [TornadoFX](https://github.com/edvin/tornadofx) used in conjunction with [RxKotlinFX](https://github.com/thomasnield/RxKotlinFX) to build a complex CRUD desktop application. It only took me two nights to build.
 
 This is an [RxJava](https://github.com/ReactiveX/RxJava)-driven application. A temporary backing database is stored in-memory using [SQLite](https://www.sqlite.org/), and [RxKotlin-JDBC](https://github.com/thomasnield/rxkotlin-jdbc) is used to reactively query and write to it. 
 
