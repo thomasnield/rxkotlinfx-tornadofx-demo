@@ -17,30 +17,29 @@ import org.nield.rxkotlinjdbc.execute
 import org.nield.rxkotlinjdbc.insert
 import org.nield.rxkotlinjdbc.select
 
-class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
+class SalesPerson(val id: Int,
+                  val firstName: String,
+                  val lastName: String) {
 
     //We maintain a collection of bindings and disposables to unsubscribe them later
     private val bindings = CompositeBinding()
     private val disposables = CompositeDisposable()
 
-    //hold original customer assignments for dirty validation
-    val originalAssignments by lazy {
-        mutableListOf<Int>().apply {
+    // Hold original customer assignments for dirty validation
+    val originalAssignments = FXCollections.observableArrayList<Int>().apply {
             assignmentsFor(id)
                     .map { it.customerId }
                     .subscribe { add(it) }
                     .addTo(disposables)
         }
-    }
-
-    //The staged Customer ID's for this SalesPerson
-    val customerAssignments by lazy { FXCollections.observableArrayList(originalAssignments) }
 
 
-    //A Binding holding formatted concatenations of the CompanyClient ID's for this SalesPerson
-    val customerAssignmentsConcat by lazy {
+    // The staged Customer ID's for this SalesPerson
+    val customerAssignments = FXCollections.observableArrayList(originalAssignments)
 
-        customerAssignments.onChangedObservable()
+
+    // A Binding holding formatted concatenations of the CompanyClient ID's for this SalesPerson
+    val customerAssignmentsConcat = customerAssignments.onChangedObservable()
                 .map {
                     Text(it.joinToString("|")).apply {
                         if (originalAssignments != it) fill = Color.RED
@@ -48,7 +47,7 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
                 }
                 .toBinding()
                 .addTo(bindings)
-    }
+
 
     //Compares original and new Customer ID assignments and writes them to database
     fun saveAssignments(): Single<Long>? {
@@ -98,13 +97,14 @@ class SalesPerson(val id: Int, val firstName: String, val lastName: String) {
                 .toObservable { SalesPerson(it.getInt("ID"), it.getString("FIRST_NAME"), it.getString("LAST_NAME")) }
                 .flatCollect()
 
-        //Retrieves all assigned CompanyClient ID's for a given SalesPerson
+        // Retrieves all assigned CompanyClient ID's for a given SalesPerson
         fun assignmentsFor(salesPersonId: Int) =
                 db.select("SELECT * FROM ASSIGNMENT WHERE SALES_PERSON_ID = :salesPersonId ORDER BY APPLY_ORDER")
                         .parameter("salesPersonId", salesPersonId)
                         .toObservable { Assignment(it.getInt("ID"), it.getInt("SALES_PERSON_ID"), it.getInt("CUSTOMER_ID"), it.getInt("APPLY_ORDER")) }
                         .flatCollect()
 
+        // Creates a new SalesPerson
         fun createNew(firstName: String, lastName: String) =
                 db.insert("INSERT INTO SALES_PERSON (FIRST_NAME,LAST_NAME) VALUES (:firstName,:lastName)")
                         .parameter("firstName", firstName)

@@ -28,19 +28,21 @@ class AppliedCustomerView : View() {
             top = label("ASSIGNED CUSTOMERS").addClass(Styles.heading)
 
             center = tableview<Customer> {
+                table = this
+
                 readonlyColumn("ID", Customer::id)
                 readonlyColumn("Name", Customer::name)
 
-                //broadcast selections
+                // Broadcast selections
                 selectionModel.selectedItems.onChangedObservable()
                     .map { it.asSequence().filterNotNull().map { it.id }.toSet() }
                     .subscribe { controller.selectedApplications.onNext(it) }
 
-                //subscribe to selections in SalesPeopleView extract a list of customers
+                // Subscribe to selections in SalesPeopleView extract a list of customers
 
-                //If multiple SalesPeople are selected, we consolidate their customers distinctly.
-                //Otherwise we will push out a hot list of Customers for that one SalesPerson.
-                //It will update automatically and the switchMap() will kill it when the selection changes
+                // If multiple SalesPeople are selected, we consolidate their customers distinctly.
+                // Otherwise we will push out a hot list of Customers for that one SalesPerson.
+                // It will update automatically and the switchMap() will kill it when the selection changes
                 controller.selectedSalesPeople
                     .switchMap { selectedPeople ->
                         //the switchMap() is amazing! it unsubscribes the previous mapped Observable when a new one comes in
@@ -68,8 +70,6 @@ class AppliedCustomerView : View() {
                                 resizeColumnsToFitContent()
                             }
                         )
-
-                table = this
             }
             left = toolbar {
                 orientation = Orientation.VERTICAL

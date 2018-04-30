@@ -57,7 +57,6 @@ class SalesPeopleView: View() {
                         .subscribe(controller.createNewSalesPerson)
             }
 
-            //remove button
             //remove customer button
             button("",removeGlyph) {
                 tooltip("Remove selected Customers")

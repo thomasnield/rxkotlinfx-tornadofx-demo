@@ -16,6 +16,7 @@ val db = DriverManager.getConnection("jdbc:sqlite::memory:").apply {
     //create CLIENT_COMPANY TABLE
    execute("CREATE TABLE CUSTOMER (ID INTEGER PRIMARY KEY, NAME VARCHAR)").toSingle().subscribe()
 
+    // insert records
     listOf(
             "Alpha Analytics",
             "Rexon Solutions",
