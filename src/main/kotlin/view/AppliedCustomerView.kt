@@ -51,14 +51,16 @@ class AppliedCustomerView : View() {
                             selectedPeople.toObservable().flatMap {
                                 it.customerAssignments.onChangedObservable()
                                     .switchMapSingle {
-                                        it.toObservable().flatMapSingle { Customer.forId(it) }.toList()
+                                        it.toObservable().flatMapSingle {
+                                            Customer.forId(it).toSingle()
+                                        }.toList()
                                     }
                             }
                         } else {
                             selectedPeople.toObservable()
                                     .flatMap { it.customerAssignments.toObservable() }
                                     .distinct()
-                                    .flatMapSingle { Customer.forId(it) }
+                                    .flatMapSingle { Customer.forId(it).toSingle() }
                                     .toSortedList { x,y -> x.id.compareTo(y.id) }
                                     .toObservable()
                         }

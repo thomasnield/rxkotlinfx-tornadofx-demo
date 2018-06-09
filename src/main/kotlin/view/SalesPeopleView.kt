@@ -72,11 +72,14 @@ class SalesPeopleView: View() {
         top = label("SALES PEOPLE").addClass(Styles.heading)
 
         center = tableview<SalesPerson> {
+
+            fun SalesPerson.customerAssignmentsConcat() = customerAssignments.joinToString("|")
+
             table = this
             readonlyColumn("ID",SalesPerson::id)
-            readonlyColumn("First Name",SalesPerson::firstName)
-            readonlyColumn("Last Name",SalesPerson::lastName)
-            column("Assigned Clients",SalesPerson::customerAssignmentsConcat)
+            readonlyColumn("First Name", SalesPerson::firstName)
+            readonlyColumn("Last Name", SalesPerson::lastName)
+            column("Assigned Clients", SalesPerson::customerAssignmentsConcat)
 
             selectionModel.selectionMode = SelectionMode.MULTIPLE
 

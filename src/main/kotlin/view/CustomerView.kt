@@ -146,7 +146,7 @@ class CustomerView : View() {
         controller.createNewCustomer
             .flatMapMaybe { NewCustomerDialog().toMaybe() }
             .flatMapMaybe { it }
-            .flatMapSingle { Customer.forId(it) }
+            .flatMapSingle { Customer.forId(it).toSingle() }
             .subscribe {
                     table.items.add(it)
                     table.selectionModel.clearSelection()

@@ -28,7 +28,7 @@ class Customer(val id: Int, val name: String) {
          */
         fun forId(id: Int) = db.select("SELECT * FROM CUSTOMER WHERE ID = ?")
                 .parameter(id)
-                .toSingle { Customer(it.getInt("ID"), it.getString("NAME")) }
+                .toPipeline { Customer(it.getInt("ID"), it.getString("NAME")) }
 
         /**
          * Creates a new `Customer` with the given `name`
