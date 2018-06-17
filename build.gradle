@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.31'
+    ext.kotlin_version = '1.2.50'
 
     repositories {
         mavenCentral()
@@ -26,8 +26,8 @@ dependencies {
 
     //TornadoFX and JavaFX dependencies
     compile 'no.tornado:tornadofx:1.7.15'
-    compile 'org.controlsfx:controlsfx:8.40.14'
-    compile 'org.nield:dirtyfx:0.1.0'
+    compile 'no.tornado:tornadofx-controlsfx:0.1.1'
+    compile 'org.nield:dirtyfx:0.1.2'
     
     //sqlite and RxJava-JDBC dependencies
     compile 'org.xerial:sqlite-jdbc:3.21.0.1'

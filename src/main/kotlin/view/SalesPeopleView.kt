@@ -79,7 +79,10 @@ class SalesPeopleView: View() {
             readonlyColumn("ID",SalesPerson::id)
             readonlyColumn("First Name", SalesPerson::firstName)
             readonlyColumn("Last Name", SalesPerson::lastName)
-            column("Assigned Clients", SalesPerson::customerAssignmentsConcat)
+            column("Assigned Clients", SalesPerson::customerAssignmentsConcat).cellFormat {
+                text = it
+                textFill = if (rowItem.customerAssignments.isDirty) Color.RED else Color.BLACK
+            }
 
             selectionModel.selectionMode = SelectionMode.MULTIPLE
 
@@ -110,7 +113,7 @@ class SalesPeopleView: View() {
 
             //handle commits
             controller.saveAssignments.flatMapMaybe {
-                items.toObservable().flatMapSingle { it.saveAssignments() }
+                items.toObservable().map { it.saveAssignments() }
                         .reduce { x,y -> x + y}
                         .doOnSuccess { println("Committed $it changes") }
             }.map { Unit }
@@ -144,10 +147,9 @@ class SalesPeopleView: View() {
         }.subscribe()
 
         //handle new Sales Person request
-        controller.createNewSalesPerson.flatMap {
+        controller.createNewSalesPerson.flatMapMaybe {
             NewSalesPersonDialog().toMaybe()
-                    .flatMapObservable { it }
-                    .flatMap { SalesPerson.forId(it) }
+                    .map { SalesPerson.forId(it) }
         }.subscribe {
             table.selectionModel.clearSelection()
             table.items.add(it)

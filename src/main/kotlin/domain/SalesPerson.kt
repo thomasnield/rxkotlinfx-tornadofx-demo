@@ -32,8 +32,8 @@ class SalesPerson(val id: Int,
 
         val old = assignmentsFor(id).toSequence().toSet()
 
-        new.asSequence().filter { !old.contains(it) }.forEach { writeAssignment(it) }
-        old.asSequence().filter { !new.contains(it) }.forEach { removeAssignment(it.id) }
+        return new.asSequence().filter { !old.contains(it) }.map { writeAssignment(it) }.sum() +
+        old.asSequence().filter { !new.contains(it) }.map { removeAssignment(it.id) }.sum()
     }
 
     fun delete() = db.execute("DELETE FROM SALES_PERSON WHERE ID = ?")
@@ -59,7 +59,7 @@ class SalesPerson(val id: Int,
 
         fun forId(id: Int) = db.select("SELECT * FROM SALES_PERSON WHERE ID = ?")
                 .parameter(id)
-                .toPipeline { SalesPerson(it.getInt("ID"), it.getString("FIRST_NAME"), it.getString("LAST_NAME")) }
+                .blockingFirst { SalesPerson(it.getInt("ID"), it.getString("FIRST_NAME"), it.getString("LAST_NAME")) }
 
         // Retrieves all assigned CompanyClient ID's for a given SalesPerson
         fun assignmentsFor(salesPersonId: Int) =

@@ -10,7 +10,7 @@ import javafx.scene.image.ImageView
 import javafx.stage.Stage
 import tornadofx.*
 
-class NewSalesPersonDialog: Dialog<Observable<Int>>() {
+class NewSalesPersonDialog: Dialog<Int>() {
     private val root = Form()
     private var first: TextField by singleAssign()
     private var last: TextField by singleAssign()
@@ -34,7 +34,7 @@ class NewSalesPersonDialog: Dialog<Observable<Int>>() {
             if (it == ButtonType.OK)
                 SalesPerson.createNew(first.text,last.text) //returns ID for new Customer
             else
-                Observable.empty()
+                0
         }
 
         dialogPane.content = root
